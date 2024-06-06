@@ -17,7 +17,6 @@ BEGIN
     END LOOP;
 END;
 
-
 -- Execucao do procedure
 BEGIN
     INSERE_USERS;
