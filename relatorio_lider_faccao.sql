@@ -27,15 +27,6 @@ CREATE OR REPLACE PACKAGE BODY LIDER_FACCAO AS
         p_com_refcur IN OUT SYS_REFCURSOR
     ) 
     IS
-        TYPE resultado IS RECORD (
-            filtro VARCHAR2(31),
-            qtd_comunidades NUMBER
-        );
-
-        TYPE t_resultado IS TABLE OF resultado;
-
-        v_resultado t_resultado;
-
         BEGIN
             IF p_filtro = 'NACAO' THEN
                 OPEN p_com_refcur FOR
