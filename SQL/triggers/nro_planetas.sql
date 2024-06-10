@@ -1,0 +1,25 @@
+-- TRIGGER PARA MANTER A QUANTIDADE DE PLANETAS ATUALIZADA NA TABELA NACAO
+CREATE OR REPLACE TRIGGER NRO_PLANETAS
+AFTER INSERT OR DELETE ON DOMINANCIA -- A tabela NACAO deve ser atualizada sempre que haver uma inserção ou remoção em DOMINANCIA
+FOR EACH ROW
+DECLARE
+    V_QTD_PLANETAS NUMBER;
+
+BEGIN
+    IF INSERTING THEN
+        SELECT QTD_PLANETAS INTO V_QTD_PLANETAS FROM NACAO N WHERE N.NOME = :NEW.NACAO;
+        V_QTD_PLANETAS := V_QTD_PLANETAS + 1;
+        dbms_output.put_line(V_QTD_PLANETAS || :NEW.NACAO);
+        UPDATE NACAO SET QTD_PLANETAS = V_QTD_PLANETAS WHERE NOME = :NEW.NACAO;
+    
+    ELSIF DELETING THEN
+        SELECT QTD_PLANETAS INTO V_QTD_PLANETAS FROM NACAO F WHERE F.NOME = :OLD.NACAO;
+        V_QTD_PLANETAS := V_QTD_PLANETAS - 1;
+        UPDATE NACAO SET QTD_PLANETAS = V_QTD_PLANETAS WHERE NOME = :OLD.NACAO;
+    END IF;
+
+EXCEPTION
+    WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('Erro desconhecido');
+    -- não é necessário tratar no_data_found pois isso dará erro na inserção, antes mesmo do trigger começar a executar,
+    -- quando deletando e a nacao nao existe, o trigger não será ativado
+END;
