@@ -6,11 +6,9 @@ import json
 # Padrao do CPI do lider
 CPI_PATTERN = re.compile(r'\d{3}\.\d{3}\.\d{3}-\d{2}')
 
-def login(connection):
+def login():
     '''
     Funcao inical da aplicacao, abre a pagina de login no navegador
-    Args:
-        connection -> conexao com o banco ja inicializada
 
     '''
 
@@ -34,34 +32,41 @@ def login(connection):
     with st.container(border=True):
 
         # Inputs de cpi e senha
-        username = st.text_input("Digite seu CPI no formato XXX.XXX.XXX-XX", key='username')
+        cpi = st.text_input("Digite seu CPI no formato XXX.XXX.XXX-XX", key='cpi')
         password = st.text_input("Senha", key='passoword', type='password')
 
         # Procedimento de login
-        if username and password:
+        if cpi and password:
 
             # Verifica o tipo do cpi entrado
-            if not CPI_PATTERN.search(username):
+            if not CPI_PATTERN.search(cpi):
                 st.text('CPI inválido. Tente novamente')
             else:
-
                 # Chama a funcao `login` da base de dados
-                with connection.cursor() as cursor:
-                    login_result = cursor.callfunc('login', str, [username, password])
-
+                with st.session_state.connection.cursor() as cursor:
+                    login_result = cursor.callfunc('login', str, [cpi, password])
                 # Verifica se o login foi bem sucedido
                 if login_result == 'Senha Incorreta!' or login_result == 'Usuario nao existe!':
                     st.text(login_result)
 
                 # Armazena o tipo de lider retornado
-                elif login_result == 'COMANDANTE' or  login_result == 'OFICIAL' or login_result == 'CIENTISTA':
-                    st.session_state['user_type'] = login_result
+                elif 'COMANDANTE' in login_result or  'OFICIAL' in login_result or 'CIENTISTA' in login_result:
+                    login_result = login_result.replace(" ", "")
 
-                # Avança para proxima pagina
-                _, col2, _ = st.columns([10, 3.8, 10])
-                with col2:
-                    if st.button("Continuar"):
-                        st.switch_page('pages/main_page.py')
+                    # Coletando o tipo do usuário
+                    st.session_state.user_type = login_result
+
+                    # Coletando a faccao do usuário
+                    with st.session_state.connection.cursor() as cursor:
+                        faccao = cursor.val(str)
+                        cursor.callproc('gerenciamento_lider.inicia_faccao', [st.session_state.cpi, faccao])
+                        st.session_state['faccao'] = faccao.get_value()
+
+                    # Avança para proxima pagina
+                    _, col2, _ = st.columns([10, 3.8, 10])
+                    with col2:
+                        if st.button("Continuar"):
+                            st.switch_page('pages/main_page.py')
 
 
 if __name__ == '__main__':
@@ -75,6 +80,8 @@ if __name__ == '__main__':
 
     # Cria conexao com o banco
     connection = oracledb.connect(user=un, password=pw, dsn=cs)
+
+    st.session_state['connection'] = connection
     
     # Acessa a pagina de login
-    login(connection)
+    login()
