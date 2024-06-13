@@ -1,36 +1,25 @@
 -- TRIGGER PARA MANTER A QUANTIDADE DE NACOES ATUALIZADA NA TABELA FACCAO
+--NRO_NACOES
 CREATE OR REPLACE TRIGGER NRO_NACOES
-AFTER INSERT OR DELETE ON NACAO_FACCAO -- A tabela FACCAO deve ser atualizada sempre que haver uma inserção ou remoção em NACAO_FACCAO
+AFTER INSERT OR DELETE OR UPDATE ON Nacao_Faccao
 FOR EACH ROW
-
-DECLARE
-    V_QTD_NACOES NUMBER;
-
 BEGIN
     IF INSERTING THEN
-        SELECT QTD_NACOES INTO V_QTD_NACOES FROM FACCAO F WHERE F.NOME = :NEW.FACCAO;
-        IF V_QTD_NACOES IS NULL THEN
-            V_QTD_NACOES := 1;
-        ELSE
-            V_QTD_NACOES := V_QTD_NACOES + 1;
-        END IF;
-        
-        UPDATE FACCAO SET QTD_NACOES = V_QTD_NACOES WHERE NOME = :NEW.FACCAO;
-    
+        UPDATE Faccao
+            SET qtd_nacoes = COALESCE(qtd_nacoes, 0) + 1
+            WHERE nome = :new.faccao;
     ELSIF DELETING THEN
-        SELECT QTD_NACOES INTO V_QTD_NACOES FROM FACCAO F WHERE F.NOME = :OLD.FACCAO;
-
-        IF V_QTD_NACOES = 1 THEN
-            V_QTD_NACOES := NULL;
-        ELSE
-            V_QTD_NACOES := V_QTD_NACOES - 1;
+        UPDATE Faccao
+            SET qtd_nacoes = COALESCE(qtd_nacoes, 0) - 1
+            WHERE nome = :old.faccao;   
+    ELSE
+    	IF :old.faccao != :new.faccao THEN
+            UPDATE Faccao
+                SET qtd_nacoes = COALESCE(qtd_nacoes, 0) - 1
+                WHERE nome = :old.faccao;
+            UPDATE Faccao
+                    SET qtd_nacoes = COALESCE(qtd_nacoes, 0) + 1
+                WHERE nome = :new.faccao;
         END IF;
-        
-        UPDATE FACCAO SET QTD_NACOES = V_QTD_NACOES WHERE NOME = :OLD.FACCAO;
-        
     END IF;
-
-EXCEPTION
-    WHEN OTHERS THEN DBMS_OUTPUT.PUT_LINE('Erro desconhecido');
-
-END;
+END NRO_NACOES;
