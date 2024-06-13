@@ -1,20 +1,23 @@
 CREATE OR REPLACE FUNCTION login (
-arg_userid VARCHAR2,
+arg_cpi VARCHAR2,
 arg_password VARCHAR2) 
 RETURN VARCHAR2
 AS 
     e_password_incorrect EXCEPTION;
     v_password users.password%TYPE;
+    v_cargo lider.cargo%TYPE;
     hashed_password VARCHAR2(32);
 BEGIN
 
-    SELECT u.password INTO v_password FROM users u
-    WHERE u.userid = arg_userid;
+    SELECT u.password, l.cargo INTO v_password, v_cargo
+    FROM users u
+    JOIN lider l ON l.cpi = u.id_lider 
+    WHERE u.id_lider = arg_cpi;
     
     SELECT standard_hash(arg_password, 'MD5') INTO hashed_password FROM dual;
 
     IF v_password = hashed_password THEN
-        RETURN 'Sucesso!';
+        RETURN v_cargo;
     ELSE
         RAISE e_password_incorrect;
     END IF;
@@ -25,16 +28,18 @@ EXCEPTION
 END login;
 
 
+select * from lider
+
 -- TESTANDO O CODIGO ACIMA
 DECLARE
     resposta VARCHAR2(100);
 BEGIN
-    resposta := login(1,'senhaPadrao123');
+    resposta := login('123.456.789-10','senhaPadrao123');
     dbms_output.put_line(resposta);
     
-    resposta := login(1,'fqwfewqfqw');
+    resposta := login('123.456.789-10','fqwfewqfqw');
     dbms_output.put_line(resposta);
     
-    resposta := login(11,'senhaPadrao123');
+    resposta := login('123.456.789-10','senhaPadrao123');
     dbms_output.put_line(resposta);
 END;
