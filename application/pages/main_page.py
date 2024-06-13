@@ -9,6 +9,9 @@ def main_page():
 
     if 'user_type' not in st.session_state.keys():
         st.session_state['user_type'] = None
+    
+    if 'report_type' not in st.session_state.keys():
+        st.session_state['report_type'] = None 
 
     # Confiracoes da pagina
     st.set_page_config(
@@ -21,6 +24,10 @@ def main_page():
     # Menu principal para os lideres
     with st.container(border=True):
         match st.session_state.user_type:
+            # Menu do líder
+            case 'LIDER':
+                st.header('Seja bem-vindo líder! Aqui você pode administrar suas facções.')
+                st.session_state['report_type'] = 'facções'
 
             # Menu do comandante
             case 'COMANDANTE':
@@ -36,7 +43,9 @@ def main_page():
             case 'CIENTISTA':
                 st.header('Seja bem-vindo cientista! Aqui você pode administrar os registros de estrelas.')
                 st.session_state['report_type'] = 'estrelas'
-
+        
+        st.container(height=5, border=False)
+        
         _, col2, _, col4, _ = st.columns([8, 10, 5, 10, 8])
 
 
@@ -52,7 +61,7 @@ def main_page():
             else:
                 disabled=False
                 
-            if st.button('Gerenciar facção', disabled=disabled):
+            if st.button(f'Gerenciar {st.session_state.report_type}', disabled=disabled):
                 st.switch_page('pages/management_page.py')
 
     _, col2, _ = st.columns([20, 5, 20])
