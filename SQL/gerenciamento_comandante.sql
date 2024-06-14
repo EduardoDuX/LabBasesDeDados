@@ -27,11 +27,13 @@ CREATE OR REPLACE PACKAGE BODY gerenciamento_comandante AS
     -- Procedimento deve ser executado imediatamente após o login
     -- Descobre, dado o lider, qual sua nacao
     PROCEDURE inicia_nacao (
-        p_cpi lider.cpi%type
+        p_cpi     IN    lider.cpi%type
+        p_refcur  OUT	SYS_REFCURSOR
     )
     IS
     BEGIN
-        SELECT nacao INTO v_nacao FROM lider where lider.cpi= p_cpi;
+        OPEN p_refcur FOR
+            SELECT nacao INTO v_nacao FROM lider where lider.cpi= p_cpi;
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
             RAISE_APPLICATION_ERROR(-20002,'Lider invalido');
