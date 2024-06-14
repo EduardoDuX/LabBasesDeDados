@@ -1,8 +1,6 @@
 ### Geral
 
 ### Gustavo
-* Procedures para garantir a consistência em:
-    * "_Toda estrela deve obrigatoriamente compor um sistema ou orbitar direta/indiretamente uma estrela que compõe um sistema._"
 * Trigger em **Comunidade** para checar se espécie é inteligente ou não.
     * Justificativa: "_Conjuntos substanciais de membros da mesma espécie inteligente podem formar Comunidades_"
 * Tentativa de cumprir _Uma federação só pode existir se estiver associada a pelo menos 1 nação._:
