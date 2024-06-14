@@ -1,13 +1,27 @@
 CREATE OR REPLACE PACKAGE gerenciamento_cientista AS
 
-    PROCEDURE cria_estrela (
+    PROCEDURE cria_estrela_com_sistema (
         p_id IN ESTRELA.ID_ESTRELA%type,
+        p_sistema IN SISTEMA.NOME%type,
         p_nome IN ESTRELA.NOME%type,
         p_classificacao IN ESTRELA.CLASSIFICACAO%type,
         p_massa IN ESTRELA.MASSA%type,
         p_x IN ESTRELA.X%type,
         p_y IN ESTRELA.Y%type,
         p_z IN ESTRELA.Z%type
+    );
+    PROCEDURE cria_estrela_orbitante (
+        p_id IN ESTRELA.ID_ESTRELA%type,
+        p_nome IN ESTRELA.NOME%type,
+        p_classificacao IN ESTRELA.CLASSIFICACAO%type,
+        p_massa IN ESTRELA.MASSA%type,
+        p_x IN ESTRELA.X%type,
+        p_y IN ESTRELA.Y%type,
+        p_z IN ESTRELA.Z%type,
+        p_orbitada IN ESTRELA.ID_ESTRELA%type,
+        p_dist_min IN ORBITA_ESTRELA.DIST_MIN%type,
+        p_dist_max IN ORBITA_ESTRELA.DIST_MAX%type,
+        p_periodo  IN ORBITA_ESTRELA.PERIODO%type
     );
     PROCEDURE le_estrela (
         p_conjunto_estrelas OUT SYS_REFCURSOR
@@ -56,8 +70,9 @@ END gerenciamento_cientista;
 
 CREATE OR REPLACE PACKAGE BODY gerenciamento_cientista AS
 
-    PROCEDURE cria_estrela (
+    PROCEDURE cria_estrela_com_sistema (
         p_id IN ESTRELA.ID_ESTRELA%type,
+        p_sistema IN SISTEMA.NOME%type,
         p_nome IN ESTRELA.NOME%type,
         p_classificacao IN ESTRELA.CLASSIFICACAO%type,
         p_massa IN ESTRELA.MASSA%type,
@@ -71,6 +86,46 @@ CREATE OR REPLACE PACKAGE BODY gerenciamento_cientista AS
     BEGIN
         INSERT INTO ESTRELA
             VALUES (p_id, p_nome, p_classificacao, p_massa, p_x, p_y, p_z);
+
+        INSERT INTO SISTEMA
+            VALUES (p_id, p_sistema);
+    
+        COMMIT;
+        
+        EXCEPTION
+            WHEN e_atributo_nao_nulo THEN
+                RAISE_APPLICATION_ERROR(-20004, 'Atributo com valor obrigatorio!');
+            WHEN DUP_VAL_ON_INDEX THEN
+                RAISE_APPLICATION_ERROR(-20006, 'Estrela ja existente!');
+                --   Como sistema é sempre associado a uma Estrela, podemos utilizar esta mensagem de erro,
+                -- pois a chave duplicada sempre acontecerá primeiro em Estrela.
+            WHEN OTHERS THEN
+                RAISE_APPLICATION_ERROR(-20000, 'Erro numero: ' || SQLCODE 
+                                        || '. Mensagem: ' || SQLERRM);
+    END cria_estrela_com_sistema;
+    
+    PROCEDURE cria_estrela_orbitante (
+        p_id IN ESTRELA.ID_ESTRELA%type,
+        p_nome IN ESTRELA.NOME%type,
+        p_classificacao IN ESTRELA.CLASSIFICACAO%type,
+        p_massa IN ESTRELA.MASSA%type,
+        p_x IN ESTRELA.X%type,
+        p_y IN ESTRELA.Y%type,
+        p_z IN ESTRELA.Z%type,
+        p_orbitada IN ESTRELA.ID_ESTRELA%type,
+        p_dist_min IN ORBITA_ESTRELA.DIST_MIN%type,
+        p_dist_max IN ORBITA_ESTRELA.DIST_MAX%type,
+        p_periodo  IN ORBITA_ESTRELA.PERIODO%type
+    ) AS
+        e_atributo_nao_nulo EXCEPTION;
+        PRAGMA EXCEPTION_INIT(e_atributo_nao_nulo, -01400); 
+    BEGIN
+
+        INSERT INTO ESTRELA
+            VALUES (p_id, p_nome, p_classificacao, p_massa, p_x, p_y, p_z);
+
+        INSERT INTO ORBITA_ESTRELA
+            VALUES (p_id, p_orbitada, p_dist_min, p_dist_max, p_periodo);
     
         COMMIT;
         
@@ -82,8 +137,8 @@ CREATE OR REPLACE PACKAGE BODY gerenciamento_cientista AS
             WHEN OTHERS THEN
                 RAISE_APPLICATION_ERROR(-20000, 'Erro numero: ' || SQLCODE 
                                         || '. Mensagem: ' || SQLERRM);
-    END cria_estrela;
-    
+    END cria_estrela_orbitante;
+
     PROCEDURE le_estrela (
         p_conjunto_estrelas OUT SYS_REFCURSOR
     ) AS
