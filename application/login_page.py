@@ -16,6 +16,9 @@ def login():
     if 'user_type' not in st.session_state.keys():
         st.session_state['user_type'] = None
 
+    if 'cpi' not in st.session_state.keys():
+        st.session_state['cpi'] = None
+
     # Configuracoes da pagina
     st.set_page_config(
         page_title="Login",
@@ -34,6 +37,8 @@ def login():
         # Inputs de cpi e senha
         cpi = st.text_input("Digite seu CPI no formato XXX.XXX.XXX-XX", key='cpi_login')
         password = st.text_input("Senha", key='password', type='password')
+
+        st.session_state.cpi = cpi
 
         # Procedimento de login
         if cpi and password:
