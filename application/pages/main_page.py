@@ -32,7 +32,7 @@ def main_page():
             # Menu do comandante
             case 'COMANDANTE':
                 st.header('Seja bem-vindo comandante! Aqui você pode administrar suas comunidades.')
-                st.session_state['report_type'] = 'comunidades'
+                st.session_state['report_type'] = 'nação'
 
             # Menu do oficial
             case 'OFICIAL':

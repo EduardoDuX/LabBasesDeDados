@@ -2,9 +2,10 @@ CREATE OR REPLACE PACKAGE gerenciamento_lider AS
     PROCEDURE remove_nacao_faccao (
         p_nacao nacao.nome%type
     );
-    PROCEDURE inicia_faccao (
+    FUNCTION inicia_faccao (
         p_cpi lider.cpi%type
-    );
+    )RETURN VARCHAR2;
+    
     PROCEDURE alterar_nome_faccao (
         p_cpi           LIDER.CPI%type,
         p_faccao_old    FACCAO.NOME%type,
@@ -25,16 +26,15 @@ CREATE OR REPLACE PACKAGE BODY gerenciamento_lider AS
         
     -- Procedimento deve ser executado imediatamente após o login
     -- Descobre, dado o lider, qual sua faccao
-    PROCEDURE inicia_faccao (
-        p_cpi	  IN 	lider.cpi%type
-        p_refcur  OUT	SYS_REFCURSOR
-    )
+     FUNCTION inicia_faccao (
+        p_cpi lider.cpi%type
+    )RETURN VARCHAR2
     IS
     BEGIN
-	OPEN p_refcur FOR
-	    SELECT faccao INTO v_faccao 
-			FROM v_lider_faccao 
+	    SELECT nome INTO v_faccao 
+			FROM faccao 
 			WHERE lider = p_cpi;
+        RETURN v_faccao;
     EXCEPTION
         WHEN NO_DATA_FOUND THEN
             RAISE_APPLICATION_ERROR(-20002,'Lider nao tem faccao');

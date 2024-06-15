@@ -1,5 +1,7 @@
 import streamlit as st
 import time
+from datetime import date
+from oracledb import DatabaseError
 
 def lider():
     st.title('Gerencie sua facção')
@@ -22,7 +24,7 @@ def lider():
         
         st.text_input(label='CPI do novo líder', placeholder='Digite o CPI no formato XXX.XXX.XXX-XX', key='new_ldr_fac')
         if st.button('Indicar'):
-            with st.session_state.connection.cursor():
+            with st.session_state.connection.cursor() as cursor:
                 cursor.callproc("gerenciamento_lider.indicar_novo_lider", [st.session_state.new_ldr_fac])
 
             # Ao dar o privilégio de líder da facção para o novo líder, o líder anterior é desconectado
@@ -45,7 +47,7 @@ def lider():
         st.subheader('Remover facção da Nação')
         st.text_input(label='Nome da nação', placeholder='Insira o nome da nação', key='rmv_nac')
         if st.button('Remover'):
-            with st.session_state.connection.cursor():
+            with st.session_state.connection.cursor() as cursor:
                 cursor.callproc("gerenciamento_lider.remove_nacao_faccao", [st.session_state.rmv_nac])
 
 def cientista():
@@ -141,32 +143,42 @@ def cientista():
 def comandante():
     st.title('Gerencie sua nação e suas dominâncias')
 
-    # Cria federação
+    # Inclui nação em uma federação
     with st.container(border=True):
-        st.subheader('Crie uma nova federeção')
-        st.text_input(label='Federação', placeholder='Insira o nome da federação')
-        st.text_input(label='Data de início', placeholder='Insira a data de fundação da federação no formato DD/MM/YYYY')
-        st.button('Criar federeção')
 
-    # Inclui nação/federação
-    with st.container(border=True):
-        st.subheader('Inclua uma nação em uma federação')
-        st.text_input(label='Nome da nação', placeholder='Insira o nome da nova nação')
-        st.text_input(label='Nome da federação', placeholder='Insira o nome da federação')
-        st.button('Incluir nação')
+        st.subheader('Inclua sua nação em uma federação existente/Crie uma federação para sua Nação')
+        federacao = st.text_input(label='Nome da federação', placeholder='Insira o nome da federação')
+        if st.button('Incluir nação'):
+            with st.session_state.connection.cursor() as cursor:
+                try:
+                    cursor.callproc('gerenciamento_comandante.incluir_nacao_federacao', [st.session_state.nacao,federacao])
+                    st.text(f'Nacão {st.session_state.nacao} incluída com sucesso na federacao {federacao}!')
 
-    # Excluir nação
+                except DatabaseError as e:
+                        if 'NACAO JA POSSUI FEDERACAO' in str(e):
+                            st.text('Sua Nação já possui federação, favor remover para fazer a troca.')
+
+
+    # Remove a Federação Atual
     with st.container(border=True):
-        st.subheader('Exclua uma nação')
-        st.text_input(label='Nome da nação', placeholder='Insira o nome da nação')
-        st.button('Excluir nação')
+        st.subheader('Remova a sua nação da federação atual')
+        if st.button('Remover Federação'):
+            with st.session_state.connection.cursor() as cursor:
+                cursor.callproc('gerenciamento_comandante.excluir_nacao_federacao', [st.session_state.nacao])
+                st.text('Federação removida com sucesso!')
 
     # Registrar dominância
     with st.container(border=True):
         st.subheader('Registre uma nova dominância')
-        st.text_input(label='Nome da nação', placeholder='Insira o nome da nação', key='nacao_dominancia')
-        st.text_input(label='Nome do planeta', placeholder='Insira o nome do planeta')
-        st.button('Registrar dominância')
+        planeta = st.text_input(label='Nome do planeta', placeholder='Insira o nome do planeta')
+        if st.button('Registrar dominância'):
+            with st.session_state.connection.cursor() as cursor:
+                try:
+                    cursor.callproc('gerenciamento_comandante.registrar_dominancia', [st.session_state.nacao, planeta])
+                    st.text('Planeta dominado com sucesso!')
+                except DatabaseError as e:
+                    if 'Planeta ja esta sob dominacao uma nacao' in str(e):
+                        st.text('Planeta já está sob dominação uma nação!')
 
 
 def management_page():
@@ -186,6 +198,7 @@ def management_page():
             comandante()
         case 'CIENTISTA':
             cientista()
+
             
     if st.button('Voltar', type='primary', key='v2'):
         st.switch_page('pages/main_page.py')

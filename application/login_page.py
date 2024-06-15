@@ -33,7 +33,7 @@ def login():
 
         # Inputs de cpi e senha
         cpi = st.text_input("Digite seu CPI no formato XXX.XXX.XXX-XX", key='cpi')
-        password = st.text_input("Senha", key='passoword', type='password')
+        password = st.text_input("Senha", key='password', type='password')
 
         # Procedimento de login
         if cpi and password:
@@ -45,12 +45,13 @@ def login():
                 # Chama a funcao `login` da base de dados
                 with st.session_state.connection.cursor() as cursor:
                     login_result = cursor.callfunc('login', str, [cpi, password])
+
                 # Verifica se o login foi bem sucedido
                 if login_result == 'Senha Incorreta!' or login_result == 'Usuario nao existe!':
                     st.text(login_result)
 
                 # Armazena o tipo de lider retornado
-                elif 'COMANDANTE' in login_result or  'OFICIAL' in login_result or 'CIENTISTA' in login_result:
+                elif 'COMANDANTE' in login_result or 'OFICIAL' in login_result or 'CIENTISTA' in login_result:
                     login_result = login_result.replace(" ", "")
 
                     # Coletando o tipo do usuário
@@ -58,15 +59,16 @@ def login():
 
                     # Coletando a faccao do usuário
                     with st.session_state.connection.cursor() as cursor:
-                        faccao = cursor.val(str)
-                        cursor.callproc('gerenciamento_lider.inicia_faccao', [st.session_state.cpi, faccao])
-                        st.session_state['faccao'] = faccao.get_value()
+                        faccao = cursor.callfunc('gerenciamento_lider.inicia_faccao', str,[st.session_state.cpi])
+                        st.session_state['faccao'] = faccao
+
+                    if 'COMANDANTE' in login_result:
+                        with st.session_state.connection.cursor() as cursor:
+                            nacao = cursor.callfunc('gerenciamento_comandante.inicia_nacao', str,[st.session_state.cpi])
+                            st.session_state['nacao'] = nacao
 
                     # Avança para proxima pagina
-                    _, col2, _ = st.columns([10, 3.8, 10])
-                    with col2:
-                        if st.button("Continuar"):
-                            st.switch_page('pages/main_page.py')
+                    st.switch_page('pages/main_page.py')
 
 
 if __name__ == '__main__':
@@ -80,7 +82,6 @@ if __name__ == '__main__':
 
     # Cria conexao com o banco
     connection = oracledb.connect(user=un, password=pw, dsn=cs)
-
     st.session_state['connection'] = connection
     
     # Acessa a pagina de login
