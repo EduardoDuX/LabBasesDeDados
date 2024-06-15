@@ -85,7 +85,7 @@ DECLARE
     v_nacao NACAO.NOME%TYPE;
 BEGIN
     v_nacao := 'Quam quia ad.';
-    LIDER_FACCAO.RELATORIO_COMUNIDADE('PLANETA', v_com_refcur);
+    LIDER_FACCAO.RELATORIO_COMUNIDADE(v_nacao, 'PLANETA', v_com_refcur);
     
     LOOP 
         FETCH v_com_refcur INTO v_filtro, v_qtd_comunidades;
