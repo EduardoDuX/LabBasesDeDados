@@ -1,4 +1,4 @@
-CREATE OR REPLACE PACKAGE gerenciamento_cientista AS
+CREATE OR REPLACE PACKAGE cientista AS
 
     PROCEDURE cria_estrela_com_sistema (
         p_id IN ESTRELA.ID_ESTRELA%type,
@@ -64,6 +64,22 @@ CREATE OR REPLACE PACKAGE gerenciamento_cientista AS
     PROCEDURE remove_estrela (
         p_id IN ESTRELA.ID_ESTRELA%type
     ); 
+    
+    PROCEDURE report_estrela(
+        id estrela.id_estrela%TYPE DEFAULT NULL,
+        p_com_refcursor IN OUT SYS_REFCURSOR
+    );
+        
+    PROCEDURE report_planeta(
+        id planeta.id_astro%TYPE DEFAULT NULL,
+        p_com_refcursor IN OUT SYS_REFCURSOR
+    );
+    PROCEDURE report_sistema(
+        e sistema.estrela%TYPE DEFAULT NULL,
+        p_com_refcursor IN OUT SYS_REFCURSOR
+    );
+    
+    
 END gerenciamento_cientista;
 
 /
@@ -254,4 +270,81 @@ CREATE OR REPLACE PACKAGE BODY gerenciamento_cientista AS
                                         || '. Mensagem: ' || SQLERRM);
     END remove_estrela;
     
-END gerenciamento_cientista;
+    
+    PROCEDURE report_estrela(
+        id estrela.id_estrela%TYPE DEFAULT NULL,
+        p_com_refcursor IN OUT SYS_REFCURSOR)
+    IS
+    BEGIN
+        IF id IS NOT NULL
+        THEN
+            OPEN p_com_refcursor FOR
+            SELECT 
+                id_estrela,
+                x,
+                y,
+                z,
+                nome,
+                classificacao,
+                massa
+            FROM ESTRELA e WHERE e.id_estrela = id;
+        ELSE
+            OPEN p_com_refcursor FOR
+            SELECT 
+                id_estrela,
+                x,
+                y,
+                z,
+                nome,
+                classificacao,
+                massa
+            FROM ESTRELA;
+        END IF;
+    END report_estrela;
+
+
+    PROCEDURE report_planeta(
+        id planeta.id_astro%TYPE DEFAULT NULL,
+        p_com_refcursor IN OUT SYS_REFCURSOR
+        ) IS
+    BEGIN
+        IF id IS NOT NULL THEN
+            OPEN p_com_refcursor FOR
+            SELECT 
+                id_astro,
+                massa,
+                raio,
+                classificacao
+            FROM planeta p WHERE p.id_astro= id;
+        ELSE
+            OPEN p_com_refcursor FOR
+            SELECT 
+                    id_astro,
+                    massa,
+                    raio,
+                    classificacao
+            FROM planeta;
+        END IF;
+    END report_planeta;
+        
+    PROCEDURE report_sistema(
+        e sistema.estrela%TYPE DEFAULT NULL,
+        p_com_refcursor IN OUT SYS_REFCURSO)
+        IS
+    BEGIN
+        IF e IS NOT NULL THEN
+            OPEN p_com_refcursor FOR
+            SELECT 
+                estrela,
+                nome
+            FROM sistema s WHERE s.estrela = e;
+        ELSE
+            OPEN p_com_refcursor FOR
+            SELECT 
+                estrela,
+                nome
+            FROM sistema;
+        END IF;
+    END report_sistema;
+    
+END cientista;
