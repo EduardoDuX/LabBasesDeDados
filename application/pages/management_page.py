@@ -272,6 +272,7 @@ def comandante():
         if st.button('Incluir nação'):
             with st.session_state.connection.cursor() as cursor:
                 try:
+                    cursor.callproc('log_message', [st.session_state.cpi, f'INCLUI NACAO {st.session_state.nacao} NA FEDERACAO {federacao}'])
                     cursor.callproc('gerenciamento_comandante.incluir_nacao_federacao', [st.session_state.nacao,federacao])
                     st.text(f'Nacão {st.session_state.nacao} incluída com sucesso na federacao {federacao}!')
 
@@ -285,6 +286,7 @@ def comandante():
         st.subheader('Remova a sua nação da federação atual')
         if st.button('Remover Federação'):
             with st.session_state.connection.cursor() as cursor:
+                cursor.callproc('log_message', [st.session_state.cpi, f'REMOVE FEDERACAO DA NACAO {st.session_state.nacao}'])
                 cursor.callproc('gerenciamento_comandante.excluir_nacao_federacao', [st.session_state.nacao])
                 st.text('Federação removida com sucesso!')
 
@@ -295,6 +297,7 @@ def comandante():
         if st.button('Registrar dominância'):
             with st.session_state.connection.cursor() as cursor:
                 try:
+                    cursor.callproc('log_message', [st.session_state.cpi, f'NACAO {st.session_state.nacao} DOMINA O PLANETA {planeta}'])
                     cursor.callproc('gerenciamento_comandante.registrar_dominancia', [st.session_state.nacao, planeta])
                     st.text('Planeta dominado com sucesso!')
                 except DatabaseError as e:

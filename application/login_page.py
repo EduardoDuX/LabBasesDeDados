@@ -32,7 +32,7 @@ def login():
     with st.container(border=True):
 
         # Inputs de cpi e senha
-        cpi = st.text_input("Digite seu CPI no formato XXX.XXX.XXX-XX", key='cpi')
+        cpi = st.text_input("Digite seu CPI no formato XXX.XXX.XXX-XX", key='cpi_login')
         password = st.text_input("Senha", key='password', type='password')
 
         # Procedimento de login
@@ -52,10 +52,19 @@ def login():
 
                 # Armazena o tipo de lider retornado
                 elif 'COMANDANTE' in login_result or 'OFICIAL' in login_result or 'CIENTISTA' in login_result:
+                    
+                    
+                    
+                    with st.session_state.connection.cursor() as cursor:
+                        cursor.callproc('log_message', [cpi, 'LOGIN'])
+
                     login_result = login_result.replace(" ", "")
 
                     # Coletando o tipo do usuário
                     st.session_state.user_type = login_result
+
+                    # Registra cpi do lider
+                    st.session_state['cpi'] = cpi
 
                     # Coletando a faccao do usuário
                     with st.session_state.connection.cursor() as cursor:
