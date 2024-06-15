@@ -1,8 +1,9 @@
 CREATE OR REPLACE PACKAGE oficial AS
-    PROCEDURE inicia_nacao (
-        p_cpi lider.cpi%type
+    PROCEDURE relatorio_habitacao(
+        p_nacao NACAO.NOME%TYPE,
+        p_agrupamento VARCHAR2,
+        p_com_refcursor IN OUT SYS_REFCURSOR
     );
-    PROCEDURE relatorio_habitacao(agrupamento VARCHAR2);
     
     END oficial;
     
@@ -11,84 +12,66 @@ CREATE OR REPLACE PACKAGE oficial AS
 CREATE OR REPLACE PACKAGE BODY oficial AS
     v_nacao nacao.nome%type; -- Variável privada com a nacao do lider, preenchida com o procedure 'inicia_nacao'
     
-    -- Procedimento deve ser executado imediatamente após o login
-    -- Descobre, dado o lider, qual sua nacao
-    PROCEDURE inicia_nacao (
-        p_cpi lider.cpi%type
-    )
-    IS
-    BEGIN
-        SELECT nacao INTO v_nacao FROM lider where lider.cpi= p_cpi;
-    EXCEPTION
-        WHEN NO_DATA_FOUND THEN
-            RAISE_APPLICATION_ERROR(-20002,'Lider invalido');
-            -- Lider sem nacao não existe, portanto um erro aqui seria um problema de aplicação
-    END inicia_nacao;
-    
     PROCEDURE relatorio_habitacao(
-        agrupamento VARCHAR2
+        p_nacao NACAO.NOME%TYPE,
+        p_agrupamento VARCHAR2,
+        p_com_refcursor IN OUT SYS_REFCURSOR
     )
     IS
-        TYPE resultado IS RECORD (
-            agrupamento VARCHAR2(31), -- TAMANHO DO MAIOR NOME POSSIVEL (SISTEMA)
-            habitantes NUMBER
-        );
-        TYPE t_resultado IS TABLE OF resultado;
-        v_resultado t_resultado;
     BEGIN
-        IF agrupamento = 'ESPECIE'
+        IF p_agrupamento = 'ESPECIE'
             THEN
             -- AGRUPADO POR ESPECIE
+            OPEN p_com_refcursor FOR
             SELECT
                 H.ESPECIE,
                 SUM(QTD_HABITANTES) AS QTD_HABITANTES
-                BULK COLLECT INTO v_resultado
             FROM
             HABITACAO H
             JOIN DOMINANCIA D ON D.PLANETA = H.PLANETA -- DOMINANCIA PARA ESCOLHER A NACAO DO LIDER
             JOIN COMUNIDADE C ON C.NOME = H.COMUNIDADE AND C.ESPECIE = H.ESPECIE -- COMUNIDADE PARA PEGAR A QUANTIDADE DE HABITANTES
             WHERE 
-            D.NACAO = v_nacao
+            D.NACAO = p_nacao
             GROUP BY
             H.ESPECIE;
         ELSIF agrupamento = 'PLANETA'
             THEN
             -- AGRUPADO POR PLANETA
+            OPEN p_com_refcursor FOR
             SELECT
                 H.PLANETA,
                 SUM(QTD_HABITANTES) AS QTD_HABITANTES
-                BULK COLLECT INTO v_resultado
             FROM
             HABITACAO H
             JOIN DOMINANCIA D ON D.PLANETA = H.PLANETA -- DOMINANCIA PARA ESCOLHER A NACAO DO LIDER
             JOIN COMUNIDADE C ON C.NOME = H.COMUNIDADE AND C.ESPECIE = H.ESPECIE -- COMUNIDADE PARA PEGAR A QUANTIDADE DE HABITANTES
             WHERE 
-            D.NACAO = v_nacao
+            D.NACAO = p_nacao
             GROUP BY
             H.PLANETA;
         ELSIF agrupamento = 'FACCAO'
             THEN
             -- AGRUPADO POR FACCAO
+            OPEN p_com_refcursor FOR
             SELECT
                 P.FACCAO,
                 SUM(QTD_HABITANTES) AS QTD_HABITANTES
-                BULK COLLECT INTO v_resultado
             FROM
             HABITACAO H
             JOIN DOMINANCIA D ON D.PLANETA = H.PLANETA -- DOMINANCIA PARA ESCOLHER A NACAO DO LIDER
             JOIN COMUNIDADE C ON C.NOME = H.COMUNIDADE AND C.ESPECIE = H.ESPECIE -- COMUNIDADE PARA PEGAR A QUANTIDADE DE HABITANTES
             LEFT JOIN PARTICIPA P ON P.ESPECIE = C.ESPECIE AND P.COMUNIDADE = C.NOME -- PARTICIPA PARA AGRUPAR POR FACCAO
             WHERE 
-            D.NACAO = v_nacao
+            D.NACAO = p_nacao
             GROUP BY
             P.FACCAO;
         ELSIF agrupamento = 'SISTEMA'
             THEN
             -- AGRUPADO POR SISTEMA
+            OPEN p_com_refcursor FOR
             SELECT
                 S.NOME,
                 SUM(QTD_HABITANTES) AS QTD_HABITANTES
-                BULK COLLECT INTO v_resultado
             FROM
             HABITACAO H
             JOIN DOMINANCIA D ON D.PLANETA = H.PLANETA
@@ -100,16 +83,16 @@ CREATE OR REPLACE PACKAGE BODY oficial AS
             GROUP BY
             S.NOME;
         ELSE 
+            OPEN p_com_refcursor FOR
             SELECT
                 'TOTAL HABITANTES',
                 SUM(QTD_HABITANTES) AS QTD_HABITANTES
-                BULK COLLECT INTO v_resultado
             FROM
             HABITACAO H
             JOIN DOMINANCIA D ON D.PLANETA = H.PLANETA
             JOIN COMUNIDADE C ON C.NOME = H.COMUNIDADE AND C.ESPECIE = H.ESPECIE
             WHERE 
-            D.NACAO = v_nacao;
+            D.NACAO = p_nacao;
         END IF;
     
     -- DEVOLVE O RESULTADO
