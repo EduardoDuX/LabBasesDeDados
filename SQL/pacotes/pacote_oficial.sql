@@ -34,7 +34,7 @@ CREATE OR REPLACE PACKAGE BODY oficial AS
             D.NACAO = p_nacao
             GROUP BY
             H.ESPECIE;
-        ELSIF agrupamento = 'PLANETA'
+        ELSIF p_agrupamento = 'PLANETA'
             THEN
             -- AGRUPADO POR PLANETA
             OPEN p_com_refcursor FOR
@@ -49,7 +49,7 @@ CREATE OR REPLACE PACKAGE BODY oficial AS
             D.NACAO = p_nacao
             GROUP BY
             H.PLANETA;
-        ELSIF agrupamento = 'FACCAO'
+        ELSIF p_agrupamento = 'FACCAO'
             THEN
             -- AGRUPADO POR FACCAO
             OPEN p_com_refcursor FOR
@@ -65,7 +65,7 @@ CREATE OR REPLACE PACKAGE BODY oficial AS
             D.NACAO = p_nacao
             GROUP BY
             P.FACCAO;
-        ELSIF agrupamento = 'SISTEMA'
+        ELSIF p_agrupamento = 'SISTEMA'
             THEN
             -- AGRUPADO POR SISTEMA
             OPEN p_com_refcursor FOR
@@ -94,34 +94,5 @@ CREATE OR REPLACE PACKAGE BODY oficial AS
             WHERE 
             D.NACAO = p_nacao;
         END IF;
-    
-    -- DEVOLVE O RESULTADO
-    IF v_resultado.first IS NULL
-        THEN
-            dbms_output.put_line('TOTAL HABITANTES: 0');
-    ELSE
-        FOR ITEM IN v_resultado.first .. v_resultado.last
-        LOOP
-            IF v_resultado(ITEM).agrupamento IS NULL
-                THEN v_resultado(ITEM).agrupamento := 'OUTROS HABITANTES';
-            END IF;
-            IF v_resultado(ITEM).habitantes IS NULL
-                THEN v_resultado(ITEM).habitantes := 0;
-            END IF;
-            dbms_output.put_line(v_resultado(ITEM).agrupamento || ': ' ||v_resultado(ITEM).habitantes);
-        END LOOP;
-    END IF;
     END relatorio_habitacao;
 END oficial;
-
-
--- TESTANDO O CODIGO ACIMA
-BEGIN
-oficial.inicia_nacao('123.456.789-10');
-oficial.relatorio_habitacao('');
---oficial.relatorio_habitacao('PLANETA');
---oficial.relatorio_habitacao('SISTEMA');
---oficial.relatorio_habitacao('ESPECIE');
---oficial.relatorio_habitacao('FACCAO');
-END;
-
