@@ -2,13 +2,13 @@ CREATE OR REPLACE PACKAGE cientista AS
 
     PROCEDURE cria_estrela_com_sistema (
         p_id IN ESTRELA.ID_ESTRELA%type,
-        p_sistema IN SISTEMA.NOME%type,
         p_nome IN ESTRELA.NOME%type,
         p_classificacao IN ESTRELA.CLASSIFICACAO%type,
         p_massa IN ESTRELA.MASSA%type,
         p_x IN ESTRELA.X%type,
         p_y IN ESTRELA.Y%type,
-        p_z IN ESTRELA.Z%type
+        p_z IN ESTRELA.Z%type,
+        p_sistema IN SISTEMA.NOME%type
     );
     PROCEDURE cria_estrela_orbitante (
         p_id IN ESTRELA.ID_ESTRELA%type,

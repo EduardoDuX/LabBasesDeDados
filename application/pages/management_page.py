@@ -12,10 +12,17 @@ def lider():
     # Alterar o nome da facção
     with st.container(border=True):
         st.subheader('Alterar nome da facção')
-        st.text_input(label='Nome da facção', placeholder='Insira o novo nome da facção', key='new_fac_name')        
+        st.text_input(
+            label='Nome da facção',
+            placeholder='Insira o novo nome da facção',
+            key='new_fac_name'
+        )        
         if st.button('Alterar'):
             with st.session_state.connection.cursor() as cursor:
-                cursor.callproc('gerenciamento_lider.alterar_nome_faccao', [st.session_state.cpi, st.session_state.faccao, st.session_state.new_fac_name])
+                cursor.callproc(
+                    'gerenciamento_lider.alterar_nome_faccao',
+                    [st.session_state.cpi, st.session_state.faccao, st.session_state.new_fac_name]
+                )
                 st.session_state.faccao = st.session_state.new_fac_name
 
             st.text('Nome da facção alterado com sucesso!')
@@ -60,39 +67,88 @@ def cientista():
     # Criar
     with st.container(border=True):
         st.subheader('Criar estrela')
-        st.text_input(label='ID', placeholder='Insira o ID da nova estrela', key='id_new_star')
-        st.text_input(label='Nome', placeholder='Insira o nome da nova estrela', key='name_new_star')
-        st.text_input(label='Classificação', placeholder='Insira a classificação da nova estrela', key='class_new_star')
-        st.text_input(label='Massa', placeholder='Insira a massa da nova estrela', key='mass_new_star')
-        st.text('Insira as coordenadas da nova estrela')
+        selected_option_create = st.multiselect(
+            'Selecione a opção para criação',
+            ['Estrela com Sistema', 'Estrela orbitante'],
+            max_selections=1,
+            placeholder='Selecione uma opção'
+        )
 
-        sub_col1, sub_col2, sub_col3 = st.columns(3)
+        if selected_option_create:
+            st.text_input(label='ID', placeholder='Insira o ID da nova estrela', key='id_new_star')
+            st.text_input(label='Nome', placeholder='Insira o nome da nova estrela', key='name_new_star')
+            st.text_input(label='Classificação', placeholder='Insira a classificação da nova estrela', key='class_new_star')
+            st.text_input(label='Massa', placeholder='Insira a massa da nova estrela', key='mass_new_star')
+            st.text('Insira as coordenadas da nova estrela')
 
-        with sub_col1:
-            st.text_input(label='X', placeholder='Insira a coordenada X', key='x_new_star')
+            sub_col1, sub_col2, sub_col3 = st.columns(3)
 
-        with sub_col2:
-            st.text_input(label='Y', placeholder='Insira a coordenada Y', key='y_new_star')
+            with sub_col1:
+                st.text_input(label='X', placeholder='Insira a coordenada X', key='x_new_star')
 
-        with sub_col3:
-            st.text_input(label='Z', placeholder='Insira a coordenada Z', key='z_new_star')
+            with sub_col2:
+                st.text_input(label='Y', placeholder='Insira a coordenada Y', key='y_new_star')
 
-        if st.button('Criar nova estrela'):
-            with st.session_state.connection.cursor() as cursor:
-                cursor.callproc('gerenciamento_cientista.cria_estrela', [st.session_state.id_new_star,
-                                                                         st.session_state.name_new_star,
-                                                                         st.session_state.class_new_star,
-                                                                         st.session_state.mass_new_star,
-                                                                         st.session_state.x_new_star,
-                                                                         st.session_state.y_new_star,
-                                                                         st.session_state.z_new_star])
-                
-            st.text('Estrela criada com sucesso!')
+            with sub_col3:
+                st.text_input(label='Z', placeholder='Insira a coordenada Z', key='z_new_star')
+
+            parameters = [
+                st.session_state.id_new_star,
+                st.session_state.name_new_star,
+                st.session_state.class_new_star,
+                st.session_state.mass_new_star,
+                st.session_state.x_new_star,
+                st.session_state.y_new_star,
+                st.session_state.z_new_star
+            ]
+
+            opt_create = selected_option_create[0]
+            match opt_create:
+                case 'Estrela com Sistema':
+                    st.text_input(label='Sistema', placeholder='Insira o nome do novo sistema', key='name_new_system')
+                    
+                    proc_name = 'gerenciamento_cientista.cria_estrela_com_sistema'
+                    parameters.append(st.session_state.name_new_system)
+                case 'Estrela orbitante':
+                    st.text_input(label='Estrela orbitada', placeholder='Insira o ID da estrela orbitada', key='id_orbited_star')
+                    st.text_input(
+                        label='Distância mínima da órbita',
+                        placeholder='Insira a distância mínima da nova órbita',
+                        key='min_dist_new_orbit'
+                    )
+                    st.text_input(
+                        label='Distância máxima da órbita',
+                        placeholder='Insira a distância máxima da nova órbita',
+                        key='max_dist_new_orbit'
+                    )
+                    st.text_input(label='Período da órbita', placeholder='Insira o período da nova órbita', key='period_new_orbit')
+
+                    proc_name = 'gerenciamento_cientista.cria_estrela_orbitante'
+                    parameters.append(st.session_state.id_orbited_star)
+                    parameters.append(st.session_state.min_dist_new_orbit)
+                    parameters.append(st.session_state.max_dist_new_orbit)
+                    parameters.append(st.session_state.period_new_orbit)
+
+            if st.button('Criar nova estrela'):
+                with st.session_state.connection.cursor() as cursor:
+                    try:
+                        cursor.callproc(proc_name, parameters)
+                        st.text('Estrela criada com sucesso!')
+                    except DatabaseError as e:
+                        if 'Atributo com valor obrigatorio!' in str(e):
+                            st.text('Algum atributo da estrela não foi preenchdio e ele é necessário, favor preencher!')
+                        elif 'Estrela ja existente!' in str(e):
+                            st.text('Estrela já existente!')
 
     # Ler (Read)
     with st.container(border=True):
         st.subheader('Visualize os dados de estrelas')
-        selected_option_read = st.multiselect('Selecione o filtro para visualização', ['Sem filtros', 'ID da estrela', 'Nome', 'Classificação', 'Massa'], max_selections=1, placeholder='Selecione uma opção')
+        selected_option_read = st.multiselect(
+            'Selecione o filtro para visualização',
+            ['Sem filtros', 'ID da estrela', 'Nome', 'Classificação', 'Massa'],
+            max_selections=1,
+            placeholder='Selecione uma opção'
+        )
         
         if selected_option_read:
             opt_read = selected_option_read[0]
@@ -106,7 +162,12 @@ def cientista():
                 case 'Massa':
                     st.text_input(label='Atributo', placeholder=f'Insira a massa da estrela', label_visibility='collapsed', key='mass_read')
                 case 'Classificação':
-                    st.text_input(label='Atributo', placeholder=f'Insira a classificação da estrela', label_visibility='collapsed', key='class_read')
+                    st.text_input(
+                        label='Atributo',
+                        placeholder=f'Insira a classificação da estrela',
+                        label_visibility='collapsed',
+                        key='class_read'
+                    )
 
             if st.button('Buscar dados'):
                 match opt_read:
@@ -203,7 +264,12 @@ def cientista():
     with st.container(border=True):
         st.subheader('Altere as informações de uma estrela')
         st.text_input('Insira o ID da estrela', key='id_update')
-        selected_option_update = st.multiselect('Selecione o atributo que deseja alterar', ['Nome', 'Classificação', 'Massa', 'Coordenadas'], max_selections=1, placeholder='Selecione uma opção')
+        selected_option_update = st.multiselect(
+            'Selecione o atributo que deseja alterar',
+            ['Nome', 'Classificação', 'Massa', 'Coordenadas'],
+            max_selections=1,
+            placeholder='Selecione uma opção'
+        )
         if selected_option_update:
             opt_update = selected_option_update[0]
             match opt_update:
@@ -223,33 +289,59 @@ def cientista():
                 case 'Massa':
                     st.text_input(label='Atributo', placeholder=f'Insira a massa da estrela', label_visibility='collapsed', key='mass_update')
                 case 'Classificação':
-                    st.text_input(label='Atributo', placeholder=f'Insira a classificação da estrela', label_visibility='collapsed', key='class_update')
+                    st.text_input(
+                        label='Atributo',
+                        placeholder=f'Insira a classificação da estrela',
+                        label_visibility='collapsed',
+                        key='class_update'
+                    )
 
             if st.button('Atualizar estrela'):
                 match opt_update:
                     case 'Nome':
                         with st.session_state.connection.cursor() as cursor:
-                            cursor.callproc('gerenciamento_cientista.atualiza_estrela_nome', [st.session_state.id_update, st.session_state.name_update])
+                            cursor.callproc(
+                                'gerenciamento_cientista.atualiza_estrela_nome',
+                                [st.session_state.id_update, st.session_state.name_update]
+                            )
                             
                         st.text(f'Nome da estrela {st.session_state.id_update} atualizado com sucesso!')
                     case 'Classificação':
                         with st.session_state.connection.cursor() as cursor:
-                            cursor.callproc('gerenciamento_cientista.atualiza_estrela_classificacao', [st.session_state.id_update, st.session_state.class_update])
+                            cursor.callproc(
+                                'gerenciamento_cientista.atualiza_estrela_classificacao',
+                                [st.session_state.id_update, st.session_state.class_update]
+                            )
                             
                         st.text(f'Classificação da estrela {st.session_state.id_update} atualizada com sucesso!')
                     case 'Massa':
                         with st.session_state.connection.cursor() as cursor:
-                            cursor.callproc('gerenciamento_cientista.atualiza_estrela_masssa', [st.session_state.id_update, st.session_state.mass_update])
+                            try:
+                                cursor.callproc(
+                                    'gerenciamento_cientista.atualiza_estrela_masssa',
+                                    [st.session_state.id_update, st.session_state.mass_update]
+                                )
+                                st.text(f'Massa da estrela {st.session_state.id_update} atualizada com sucesso!')
+                            except DatabaseError as e:
+                                if 'Massa deve ser maior que 0!' in str(e):
+                                    st.text('A massa de uma estrela deve ser maior que 0!')
                             
-                        st.text(f'Massa da estrela {st.session_state.id_update} atualizada com sucesso!')
                     case 'Coordenadas':
                         with st.session_state.connection.cursor() as cursor:
-                            cursor.callproc('gerenciamento_cientista.atualiza_estrela_nome', [st.session_state.id_update, 
-                                                                                              st.session_state.x_update,
-                                                                                              st.session_state.y_update,
-                                                                                              st.session_state.z_update])
-                            
-                        st.text(f'Coordenadas da estrela {st.session_state.id_update} atualizadas com sucesso!')
+                            try:
+                                cursor.callproc(
+                                    'gerenciamento_cientista.atualiza_estrela_nome',
+                                    [
+                                        st.session_state.id_update,
+                                        st.session_state.x_update,
+                                        st.session_state.y_update,
+                                        st.session_state.z_update
+                                    ]
+                                )
+                                st.text(f'Coordenadas da estrela {st.session_state.id_update} atualizadas com sucesso!')
+                            except DatabaseError as e:
+                                if 'Coordenadas conflitantes com outra estrela.' in str(e):
+                                    st.text('Nestas coordenadas já está localizada outra estrela!')
 
     # Remover
     with st.container(border=True):
