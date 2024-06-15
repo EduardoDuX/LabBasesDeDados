@@ -82,8 +82,9 @@ DECLARE
     v_com_refcur SYS_REFCURSOR;
     v_filtro VARCHAR2(31);
     v_qtd_comunidades NUMBER;
+    v_nacao NACAO.NOME%TYPE;
 BEGIN
-    LIDER_FACCAO.GET_NACAO('876.563.876-90');
+    v_nacao := 'Quam quia ad.';
     LIDER_FACCAO.RELATORIO_COMUNIDADE('PLANETA', v_com_refcur);
     
     LOOP 
