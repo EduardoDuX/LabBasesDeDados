@@ -96,48 +96,166 @@ def cientista():
             match opt_read:
                 case 'Sem filtros':
                     pass
-                case 'ID':
+                case 'ID da estrela':
                     st.text_input(label='Atributo', placeholder=f'Insira o ID da estrela', label_visibility='collapsed', key='id_read')
+                case 'Nome':
+                    st.text_input(label='Atributo', placeholder=f'Insira o nome da estrela', label_visibility='collapsed', key='name_read')
                 case 'Massa':
-                    st.text_input(label='Atributo', placeholder=f'Insira a massa', label_visibility='collapsed', key='mass_read')
+                    st.text_input(label='Atributo', placeholder=f'Insira a massa da estrela', label_visibility='collapsed', key='mass_read')
                 case 'Classificação':
-                    st.text_input(label='Atributo', placeholder=f'Insira a classificação', label_visibility='collapsed', key='class_read')
+                    st.text_input(label='Atributo', placeholder=f'Insira a classificação da estrela', label_visibility='collapsed', key='class_read')
 
-            st.button('Buscar dados')
+            if st.button('Buscar dados'):
+                match opt_read:
+                    case 'Sem filtros':
+                        with st.session_state.connection.cursor() as cursor:
+                            ref = st.session_state.connection.cursor()
+
+                            cursor.callproc('gerenciamento_cientista.le_estrela', [ref])
+
+                            with open("le_estrela.csv", "w", encoding='utf-8') as outputfile:
+                                writer = csv.writer(outputfile, lineterminator="\n")
+                                writer.writerows(ref)
+
+                            columns = ['id_estrela', 'nome', 'classificacao', 'massa', 'coordenada_x', 'coordenada_y', 'coordenada_z']
+
+                            result = pd.read_csv('le_estrela.csv', names=columns, header=None)
+
+                            st.dataframe(result)
+
+                            os.remove('le_estrela.csv')
+
+                    case 'ID da estrela':
+                        with st.session_state.connection.cursor() as cursor:
+                            ref = st.session_state.connection.cursor()
+
+                            cursor.callproc('gerenciamento_cientista.le_estrela_id', [st.session_state.id_read, ref])
+
+                            with open("le_estrela_id.csv", "w", encoding='utf-8') as outputfile:
+                                writer = csv.writer(outputfile, lineterminator="\n")
+                                writer.writerows(ref)
+
+                            columns = ['id_estrela', 'nome', 'classificacao', 'massa', 'coordenada_x', 'coordenada_y', 'coordenada_z']
+
+                            result = pd.read_csv('le_estrela_id.csv', names=columns, header=None)
+
+                            st.dataframe(result)
+
+                            os.remove('le_estrela_id.csv')
+
+                    case 'Nome':
+                        with st.session_state.connection.cursor() as cursor:
+                            ref = st.session_state.connection.cursor()
+
+                            cursor.callproc('gerenciamento_cientista.le_estrela_nome', [st.session_state.name_read, ref])
+
+                            with open("le_estrela_nome.csv", "w", encoding='utf-8') as outputfile:
+                                writer = csv.writer(outputfile, lineterminator="\n")
+                                writer.writerows(ref)
+
+                            columns = ['id_estrela', 'nome', 'classificacao', 'massa', 'coordenada_x', 'coordenada_y', 'coordenada_z']
+
+                            result = pd.read_csv('le_estrela_nome.csv', names=columns, header=None)
+
+                            st.dataframe(result)
+
+                            os.remove('le_estrela_nome.csv')
+
+                    case 'Massa':
+                        with st.session_state.connection.cursor() as cursor:
+                            ref = st.session_state.connection.cursor()
+
+                            cursor.callproc('gerenciamento_cientista.le_estrela_massa', [st.session_state.mass_read, ref])
+
+                            with open("le_estrela_massa.csv", "w", encoding='utf-8') as outputfile:
+                                writer = csv.writer(outputfile, lineterminator="\n")
+                                writer.writerows(ref)
+
+                            columns = ['id_estrela', 'nome', 'classificacao', 'massa', 'coordenada_x', 'coordenada_y', 'coordenada_z']
+
+                            result = pd.read_csv('le_estrela_massa.csv', names=columns, header=None)
+
+                            st.dataframe(result)
+
+                            os.remove('le_estrela_massa.csv')
+                    case 'Classificação':
+                        with st.session_state.connection.cursor() as cursor:
+                            ref = st.session_state.connection.cursor()
+
+                            cursor.callproc('gerenciamento_cientista.le_estrela_classificacao', [st.session_state.class_read, ref])
+
+                            with open("le_estrela_class.csv", "w", encoding='utf-8') as outputfile:
+                                writer = csv.writer(outputfile, lineterminator="\n")
+                                writer.writerows(ref)
+
+                            columns = ['id_estrela', 'nome', 'classificacao', 'massa', 'coordenada_x', 'coordenada_y', 'coordenada_z']
+
+                            result = pd.read_csv('le_estrela_class.csv', names=columns, header=None)
+
+                            st.dataframe(result)
+
+                            os.remove('le_estrela_class.csv')
 
     # Atualizar
     with st.container(border=True):
         st.subheader('Altere as informações de uma estrela')
-        st.text_input('Insira o ID da estrela', key='update_star')
+        st.text_input('Insira o ID da estrela', key='id_update')
         selected_option_update = st.multiselect('Selecione o atributo que deseja alterar', ['Nome', 'Classificação', 'Massa', 'Coordenadas'], max_selections=1, placeholder='Selecione uma opção')
         if selected_option_update:
             opt_update = selected_option_update[0]
             match opt_update:
                 case 'Nome':
-                    st.text_input(label='Atributo', placeholder='Insira o nome', label_visibility='collapsed')
+                    st.text_input(label='Atributo', placeholder='Insira o nome da estrela', label_visibility='collapsed', key='name_update')
                 case 'Coordenadas':
                     sub_col1, sub_col2, sub_col3 = st.columns(3)
 
                     with sub_col1:
-                        st.text_input(label='X', placeholder='Insira a coordenada X')
+                        st.text_input(label='X', placeholder='Insira a coordenada X', key='x_update')
 
                     with sub_col2:
-                        st.text_input(label='Y', placeholder='Insira a coordenada Y')
+                        st.text_input(label='Y', placeholder='Insira a coordenada Y', key='y_update')
 
                     with sub_col3:
-                        st.text_input(label='Z', placeholder='Insira a coordenada Z')
+                        st.text_input(label='Z', placeholder='Insira a coordenada Z', key='z_update')
                 case 'Massa':
-                    st.text_input(label='Atributo', placeholder=f'Insira a massa', label_visibility='collapsed')
+                    st.text_input(label='Atributo', placeholder=f'Insira a massa da estrela', label_visibility='collapsed', key='mass_update')
                 case 'Classificação':
-                    st.text_input(label='Atributo', placeholder=f'Insira a classificação', label_visibility='collapsed')
+                    st.text_input(label='Atributo', placeholder=f'Insira a classificação da estrela', label_visibility='collapsed', key='class_update')
 
-            st.button('Atualizar estrela')
+            if st.button('Atualizar estrela'):
+                match opt_update:
+                    case 'Nome':
+                        with st.session_state.connection.cursor() as cursor:
+                            cursor.callproc('gerenciamento_cientista.atualiza_estrela_nome', [st.session_state.id_update, st.session_state.name_update])
+                            
+                        st.text(f'Nome da estrela {st.session_state.id_update} atualizado com sucesso!')
+                    case 'Classificação':
+                        with st.session_state.connection.cursor() as cursor:
+                            cursor.callproc('gerenciamento_cientista.atualiza_estrela_classificacao', [st.session_state.id_update, st.session_state.class_update])
+                            
+                        st.text(f'Classificação da estrela {st.session_state.id_update} atualizada com sucesso!')
+                    case 'Massa':
+                        with st.session_state.connection.cursor() as cursor:
+                            cursor.callproc('gerenciamento_cientista.atualiza_estrela_masssa', [st.session_state.id_update, st.session_state.mass_update])
+                            
+                        st.text(f'Massa da estrela {st.session_state.id_update} atualizada com sucesso!')
+                    case 'Coordenadas':
+                        with st.session_state.connection.cursor() as cursor:
+                            cursor.callproc('gerenciamento_cientista.atualiza_estrela_nome', [st.session_state.id_update, 
+                                                                                              st.session_state.x_update,
+                                                                                              st.session_state.y_update,
+                                                                                              st.session_state.z_update])
+                            
+                        st.text(f'Coordenadas da estrela {st.session_state.id_update} atualizadas com sucesso!')
 
     # Remover
     with st.container(border=True):
         st.subheader('Remova uma estrela')
-        st.text_input('Insira o ID da estrela', key='delete_star')
-        st.button('Remover estrela')
+        st.text_input('Insira o ID da estrela', key='id_delete')
+        if st.button('Remover estrela'):
+            with st.session_state.connection.cursor() as cursor:
+                cursor.callproc('gerrenciamento_cientista.remove_estrela', [st.session_state.id_delete])
+            st.text('Estrela removida com sucesso!')
 
 
 def comandante():
