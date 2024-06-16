@@ -20,19 +20,17 @@
 
 ### SQL
 Pasta contendo os arquivos SQL utilizados para criar tabelas, triggers, views e outras estruturas no banco de dados. Esse diretório está organizado com subpastas para cada tipo de estrutura utilizada:
+
 #### pacotes:
-
-
-##### procedures_funcoes:
-- insere_users.sql: Código para definição do procedure que cadastra os líderes na tabela `USERS`.
-- log_message.sql: Código para definição do procedure para manter log de atividades na aplicação.
-- login.sql: Código para definição da função que realiza login do usuário na aplicação.
-
+- pacote_cientista.sql: Código para definição do pacote `cientista`, contendo todas as funcionalidades de gerenciamento e relatório do cientista.
+- pacote_comandante.sql: Código para definição do pacote `comandante`, contendo todas as funcionalidades de gerenciamento e relatório do comandante.
+- pacote_lider_faccao.sql: Código para definição do pacote `lider_faccao`, contendo todas as funcionalidades de gerenciamento e relatório do lider de faccao.
+- pacote_oficial.sql: Código para definição do pacote `oficial`, contendo todas as funcionalidades de relatório do oficial.
+- pacote_usuario.sql: Código para definição do pacote `usuario`, contendo todas as funcionalidades comuns para gerenciamento de usuarios.
 
 ##### tabelas:
 - tabela_users.sql: Código para definição da tabela `USERS`
 - tabela_log_table.sql: Código para definição da tabela `LOG_USERS`
-
 
 ##### triggers:
 - lider_faccao_nacao.sql: Código para definição de um trigger que associa uma federação à nação do lider quando criada.
@@ -40,11 +38,16 @@ Pasta contendo os arquivos SQL utilizados para criar tabelas, triggers, views e 
 - nro_planetas.sql: Código para definição de um trigger que mantém o campo qtd_planetas da tabela nação atualizado.
 - tr_comunidade.sql: Código para definição de um trigger para garantir que só é possível criar comunidades de nações inteligentes.
 - tr_participa.sql: Código para definição de um trigger para garantir que a comunidade só possa se filiar à facções presentes na sua nação.
-
+- trigger_view_lider_faccao.sql: Código para definição do trigger instead of para inserções com na view `v_lider_faccao` 
 
 ##### views:
 - view_lider_faccao.sql: Código para definição da view `v_lider_faccao`
 
+##### insere_users
+Codigo PL/SQL para inserção dos líderes na tabela `USER`
+
+##### inserts
+Arquivo contendo as inserções necessárias para realizar testes
 
 ### application:
 Pasta contendo os arquivos .py que definem as páginas da aplicação

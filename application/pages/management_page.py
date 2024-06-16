@@ -1,5 +1,4 @@
 import streamlit as st
-import time
 import csv
 import pandas as pd
 import os
@@ -80,6 +79,7 @@ def cientista():
             if st.button('Criar nova estrela'):
                 with st.session_state.connection.cursor() as cursor:
                     try:
+                        cursor.callproc('usuario.log_message', [st.session_state.cpi, f'CRIA ESTRELA {st.session_state.id_new_star}'])
                         cursor.callproc(proc_name, parameters)
                         st.text('Estrela criada com sucesso!')
                     except DatabaseError as e:
@@ -245,9 +245,11 @@ def cientista():
                     )
 
             if st.button('Atualizar estrela'):
+                cursor.callproc('usuario.log_message', [st.session_state.cpi, f'UPDATE ESTRELA {st.session_state.id_update}'])
                 match opt_update:
                     case 'Nome':
                         with st.session_state.connection.cursor() as cursor:
+                            
                             cursor.callproc(
                                 'cientista.atualiza_estrela_nome',
                                 [st.session_state.id_update, st.session_state.name_update]
@@ -297,6 +299,7 @@ def cientista():
         st.text_input('Insira o ID da estrela', key='id_delete')
         if st.button('Remover estrela'):
             with st.session_state.connection.cursor() as cursor:
+                cursor.callproc('usuario.log_message', [st.session_state.cpi, f'REMOVE ESTRELA {st.session_state.id_delete}'])
                 cursor.callproc('cientista.remove_estrela', [st.session_state.id_delete])
             st.text('Estrela removida com sucesso!')
 

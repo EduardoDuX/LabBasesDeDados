@@ -15,6 +15,7 @@ def lider():
         )        
         if st.button('Alterar'):
             with st.session_state.connection.cursor() as cursor:
+                cursor.callproc('usuario.log_message', [st.session_state.cpi, f'ALTERA LIDER DA FACCAO {st.session_state.faccao} PARA {st.session_state.new_fac_name}'])
                 cursor.callproc(
                     'lider_faccao.alterar_nome_faccao',
                     [st.session_state.cpi, st.session_state.faccao, st.session_state.new_fac_name]
@@ -31,6 +32,7 @@ def lider():
         st.text_input(label='CPI do novo líder', placeholder='Digite o CPI no formato XXX.XXX.XXX-XX', key='new_ldr_fac')
         if st.button('Indicar'):
             with st.session_state.connection.cursor() as cursor:
+                cursor.callproc('usuario.log_message', [st.session_state.cpi, f'INDICA {st.session_state.new_ldr_fac} COMO NOVO LIDER DA FACCAO {st.session_state.faccao}'])
                 cursor.callproc("lider_faccao.indicar_novo_lider", [st.session_state.new_ldr_fac])
 
             # Ao dar o privilégio de líder da facção para o novo líder, o líder anterior é desconectado
@@ -54,6 +56,7 @@ def lider():
         st.text_input(label='Nome da nação', placeholder='Insira o nome da nação', key='rmv_nac')
         if st.button('Remover'):
             with st.session_state.connection.cursor() as cursor:
+                cursor.callproc('usuario.log_message', [st.session_state.cpi, f'REMOVE FACCAO {st.session_state.faccao} DA NACAO {st.session_state.rmv_nac}'])
                 cursor.callproc("lider_faccao.remove_nacao_faccao", [st.session_state.rmv_nac])
 
 def management_leader():

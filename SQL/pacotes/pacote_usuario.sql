@@ -77,9 +77,10 @@ CREATE OR REPLACE PACKAGE BODY USUARIO AS
     
     EXCEPTION 
         WHEN NO_DATA_FOUND THEN
-            RETURN ' '
+            RETURN ' ';
 
     END inicia_nome;
+
 
     PROCEDURE LOG_MESSAGE(
         cpi lider.cpi%TYPE,
