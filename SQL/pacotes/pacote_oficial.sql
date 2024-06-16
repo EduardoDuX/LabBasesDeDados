@@ -84,7 +84,7 @@ CREATE OR REPLACE PACKAGE BODY oficial AS
                 LEFT JOIN ORBITA_PLANETA OP ON OP.PLANETA = H.PLANETA 
                 LEFT JOIN SISTEMA S ON S.ESTRELA = OP.ESTRELA
             WHERE 
-                D.NACAO = v_nacao
+                D.NACAO = p_nacao
             GROUP BY
                 S.NOME;
         
