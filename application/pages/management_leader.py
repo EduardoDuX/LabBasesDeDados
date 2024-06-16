@@ -1,4 +1,5 @@
 import streamlit as st
+from oracledb import DatabaseError
 import time
 import re
 
@@ -60,9 +61,14 @@ def lider():
             if len(st.session_state.rmv_nac) > 15:
                 st.text(f'Nome da Nação deve ter até 15 dígitos.')
             else:
-                with st.session_state.connection.cursor() as cursor:
-                    cursor.callproc('usuario.log_message', [st.session_state.cpi, f'REMOVE FACCAO {st.session_state.faccao} DA NACAO {st.session_state.rmv_nac}'])
-                    cursor.callproc("lider_faccao.remove_nacao_faccao", [st.session_state.rmv_nac, st.session_state.faccao])
+                try:
+                    with st.session_state.connection.cursor() as cursor:
+                        cursor.callproc('usuario.log_message', [st.session_state.cpi, f'REMOVE FACCAO {st.session_state.faccao} DA NACAO {st.session_state.rmv_nac}'])
+                        cursor.callproc("lider_faccao.remove_nacao_faccao", [st.session_state.rmv_nac, st.session_state.faccao])
+                except DatabaseError as e:
+                    if 'Nao pode excluir a propria nacao de sua faccao' in str(e):
+                        st.text('Você não pode remover a sua facção da sua nação!')
+                
 
 
 # Função geral que organiza a página
