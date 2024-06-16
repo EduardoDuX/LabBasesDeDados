@@ -47,7 +47,7 @@ def lider():
                     column_name = 'Sistema'
             
             if st.button('Gerar relatório', key='r1'):
-                with st.sesion_state.connection.cursor() as cursor:
+                with st.session_state.connection.cursor() as cursor:
                     ref = st.session_state.connection.cursor()
 
                     cursor.callproc('lider_faccao.relatorio_comunidade', [st.session_state.nacao, st.session_state.filter_ldr, ref])

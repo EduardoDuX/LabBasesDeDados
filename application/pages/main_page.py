@@ -41,9 +41,11 @@ def main_page():
         st.session_state['report_type'].append('facções')
     
     # Exibindo informações do usuário
-    name = 'Placeholder'
     st.markdown(f"<h6 color: white;'>Usuário autenticado: ***{st.session_state.cpi[3:11]}-**</h6>", unsafe_allow_html=True)
-    st.markdown(f"<h6 color: white;'>Nome: {name}</h6>", unsafe_allow_html=True)
+    st.markdown(f"<h6 color: white;'>Nome: {st.session_state.nome_usuario}</h6>", unsafe_allow_html=True)
+    st.markdown(f"<h6 color: white;'>Nação: {st.session_state.nacao}</h6>", unsafe_allow_html=True)
+    if st.session_state.faccao:
+        st.markdown(f"<h6 color: white;'>Facção: {st.session_state.faccao}</h6>", unsafe_allow_html=True)
         
     # Botões da página
     st.container(height=5, border=False)
@@ -56,31 +58,31 @@ def main_page():
     # Botao de gerenciamento
     with col2:
         if st.session_state.user_type == 'OFICIAL':
-            disabled=True
+            disabled_man=True
         else:
-            disabled=False
+            disabled_man=False
             
-        if st.button(f'Gerenciar {st.session_state.report_type[0]}', disabled=disabled):
+        if st.button(f'Gerenciar {st.session_state.report_type[0]}', disabled=disabled_man):
             st.switch_page('pages/management_page.py')
 
     # Botao de gerar relatorios específico para líderes de facção
     with col3:
         if len(st.session_state.report_type) == 2:
-            disabled=True
+            disabled_rep=False
         else:
-            disabled=False
+            disabled_rep=True
 
-        if st.button(f'Gerar relatórios de facção', disabled=disabled):
+        if st.button(f'Gerar relatórios de facção', disabled=disabled_rep):
             st.switch_page('pages/reports_leader.py')
 
     # Botao de gerenciamento específico para líderes de facção
     with col4:
         if len(st.session_state.report_type) == 2:
-            disabled=True
+            disabled_ldr=False
         else:
-            disabled=False
+            disabled_ldr=True
 
-        if st.button(f'Gerenciar facção', disabled=disabled):
+        if st.button(f'Gerenciar facção', disabled=disabled_ldr):
             st.switch_page('pages/management_leader.py')
     
     # Botao de sair do aplicativo

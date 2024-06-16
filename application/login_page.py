@@ -69,14 +69,14 @@ def login():
                     # Coletando a faccao do usuário
                     with st.session_state.connection.cursor() as cursor:
                         try:
-                            faccao = cursor.callfunc('pacote_lider_faccao.inicia_faccao', str,[st.session_state.cpi])
+                            faccao = cursor.callfunc('lider_faccao.inicia_faccao', str,[st.session_state.cpi])
                             st.session_state['faccao'] = faccao
                         except:
                             st.session_state['faccao'] = None
 
                     # Coletando o nome do usuário
                     with st.session_state.connection.cursor() as cursor:
-                        nome_usuario = cursor.callfunc('pacote_usuario.inicia_nacao', str, [st.session_state.cpi])
+                        nome_usuario = cursor.callfunc('usuario.inicia_nome', str, [st.session_state.cpi])
                         st.session_state['nome_usuario'] = nome_usuario
 
                     with st.session_state.connection.cursor() as cursor:
@@ -90,7 +90,7 @@ def login():
 if __name__ == '__main__':
 
     # Busca as credenciais da base de dados
-    with open('credenciais.json', 'r') as f:
+    with open('/home/alesouza/USP/7_semestre/lab-bd/credenciais.json', 'r') as f:
         cred = json.load(f)
         cs = cred['cs']
         un = cred['un']

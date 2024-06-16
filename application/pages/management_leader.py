@@ -39,16 +39,7 @@ def lider():
             st.text('Novo líder indicado com sucesso! Você será desconectado em breve...')
             time.sleep(8)
             st.switch_page('login_page.py')
-    
-    # Credenciar uma nova comunidade
-    with st.container(border=True):
-        st.subheader('Credenciar nova comunidade')
-        sub_col1, sub_col2 = st.columns(2)
-        with sub_col1:
-            st.text_input(label='Nome da comunidade', placeholder='Insira o nome da comunidade')
-        with sub_col2:
-            st.text_input(label='Espécie da comunidade', placeholder='Insira a espécide da comunidade')
-        st.button('Credenciar')
+
     
     # Remover facção da Nação
     with st.container(border=True):
@@ -57,8 +48,10 @@ def lider():
         if st.button('Remover'):
             with st.session_state.connection.cursor() as cursor:
                 cursor.callproc('usuario.log_message', [st.session_state.cpi, f'REMOVE FACCAO {st.session_state.faccao} DA NACAO {st.session_state.rmv_nac}'])
-                cursor.callproc("lider_faccao.remove_nacao_faccao", [st.session_state.rmv_nac])
+                cursor.callproc("lider_faccao.remove_nacao_faccao", [st.session_state.rmv_nac, st.session_state.faccao])
 
+
+# Função geral que organiza a página
 def management_leader():
     st.set_page_config(
     page_title="Gerenciamento",
