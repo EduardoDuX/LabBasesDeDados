@@ -39,17 +39,21 @@ def lider():
         
         st.text_input(label='CPI do novo líder', placeholder='Digite o CPI no formato XXX.XXX.XXX-XX', key='new_ldr_fac')
         if st.button('Indicar'):
-            if not CPI_PATTERN.search(st.session_state.cpi):
-                st.text('CPI inválido. Tente novamente')
-            else:
-                with st.session_state.connection.cursor() as cursor:
-                    cursor.callproc('usuario.log_message', [st.session_state.cpi, f'INDICA {st.session_state.new_ldr_fac} COMO NOVO LIDER DA FACCAO {st.session_state.faccao}'])
-                    cursor.callproc("lider_faccao.indicar_novo_lider", [st.session_state.new_ldr_fac])
+            try:
+                if not CPI_PATTERN.search(st.session_state.cpi):
+                    st.text('CPI inválido. Tente novamente')
+                else:
+                    with st.session_state.connection.cursor() as cursor:
+                        cursor.callproc('usuario.log_message', [st.session_state.cpi, f'INDICA {st.session_state.new_ldr_fac} COMO NOVO LIDER DA FACCAO {st.session_state.faccao}'])
+                        cursor.callproc('lider_faccao.indicar_novo_lider', [st.session_state.new_ldr_fac, st.session_state.faccao])
 
-            # Ao dar o privilégio de líder da facção para o novo líder, o líder anterior é desconectado
-            st.text('Novo líder indicado com sucesso! Você será desconectado em breve...')
-            time.sleep(8)
-            st.switch_page('login_page.py')
+                # Ao dar o privilégio de líder da facção para o novo líder, o líder anterior é desconectado
+                st.text('Novo líder indicado com sucesso! Você será desconectado em breve...')
+                time.sleep(8)
+                st.switch_page('login_page.py')
+            except DatabaseError as e:
+                if 'Este usuario ja lidera outra faccao' in str(e):
+                    st.text('Este usuário já lidera outra facção.')
 
     
     # Remover facção da Nação
@@ -64,7 +68,7 @@ def lider():
                 try:
                     with st.session_state.connection.cursor() as cursor:
                         cursor.callproc('usuario.log_message', [st.session_state.cpi, f'REMOVE FACCAO {st.session_state.faccao} DA NACAO {st.session_state.rmv_nac}'])
-                        cursor.callproc("lider_faccao.remove_nacao_faccao", [st.session_state.rmv_nac, st.session_state.faccao])
+                        cursor.callproc("lider_faccao.remove_nacao_faccao", [st.session_state.cpi, st.session_state.rmv_nac, st.session_state.faccao])
                 except DatabaseError as e:
                     if 'Nao pode excluir a propria nacao de sua faccao' in str(e):
                         st.text('Você não pode remover a sua facção da sua nação!')

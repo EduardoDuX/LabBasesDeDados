@@ -13,6 +13,7 @@ CREATE OR REPLACE PACKAGE LIDER_FACCAO AS
 
     -- Remover a faccao de uma nacao
     PROCEDURE remove_nacao_faccao (
+        p_cpi lider.cpi%type,
         p_nacao nacao.nome%type,
         p_faccao faccao.nome%type
     );
@@ -32,8 +33,7 @@ CREATE OR REPLACE PACKAGE LIDER_FACCAO AS
 
     -- Indica um novo lider para a faccao
     PROCEDURE indicar_novo_lider (
-        p_lider_atual   LIDER.CPI%type,
-        p_lider_novo    FACCAO.NOME%type,
+        p_lider_novo    LIDER.NOME%type,
         p_faccao        FACCAO.NOME%type
     );
 
@@ -169,7 +169,7 @@ CREATE OR REPLACE PACKAGE BODY LIDER_FACCAO AS
             WHERE CPI = p_cpi;
             
         IF v_nacao_lider = p_nacao THEN
-            RAISE_APPLICATION_ERROR('Nao pode excluir a propria nacao de sua faccao');
+            RAISE_APPLICATION_ERROR(-20560, 'Nao pode excluir a propria nacao de sua faccao');
         END IF;
     
         DELETE FROM
@@ -263,16 +263,22 @@ CREATE OR REPLACE PACKAGE BODY LIDER_FACCAO AS
     
 
     PROCEDURE indicar_novo_lider (
-        p_lider_atual   LIDER.CPI%type,
-        p_lider_novo    FACCAO.NOME%type,
+        p_lider_novo    LIDER.NOME%type,
         p_faccao        FACCAO.NOME%type
     ) AS
+        e_lider_invalido EXCEPTION;
+        PRAGMA EXCEPTION_INIT(e_lider_invalido, -00001); 
     BEGIN
+    
         UPDATE Faccao SET
             Lider = p_lider_novo
         WHERE
             Nome = p_faccao;
         
+        EXCEPTION
+            WHEN e_lider_invalido THEN
+                RAISE_APPLICATION_ERROR(-20650, 'Este usuario ja lidera outra faccao.');
+                
         commit;
 
     END indicar_novo_lider;
