@@ -39,23 +39,44 @@ def cientista():
             with sub_col3:
                 st.text_input(label='Z', placeholder='Insira a coordenada Z', key='z_new_star')
 
-            parameters = [
-                st.session_state.id_new_star,
-                st.session_state.name_new_star,
-                st.session_state.class_new_star,
-                st.session_state.mass_new_star,
-                st.session_state.x_new_star,
-                st.session_state.y_new_star,
-                st.session_state.z_new_star
-            ]
-
             opt_create = selected_option_create[0]
             match opt_create:
                 case 'Estrela com Sistema':
                     st.text_input(label='Sistema', placeholder='Insira o nome do novo sistema', key='name_new_system')
                     
-                    proc_name = 'cientista.cria_estrela_com_sistema'
-                    parameters.append(st.session_state.name_new_system)
+                    with st.session_state.connection.cursor() as cursor:
+                        if len(st.session_state.id_new_star) > 31:
+                            st.text('O ID da estrela deve ter no máximo 31 caracteres')
+                        elif len(st.session_state.name_new_star) > 31:
+                            st.text('O nome da estrela deve ter no máximo 31 caracteres')
+                        elif len(st.session_state.name_new_system) > 31:
+                            st.text('O nome do sistema deve ter no máximo 31 caracteres')
+                        elif len(st.session_state.class_new_star) > 31:
+                            st.text('A classe da estrela deve ter no máximo 31 caracteres')
+                        else:
+                            try:
+                                cursor.callproc('usuario.log_message', [st.session_state.cpi, f'CRIA ESTRELA {st.session_state.id_new_star}'])
+                                cursor.callproc('cientista.cria_estrela_com_sistema', [
+                                    st.session_state.id_new_star,
+                                    st.session_state.name_new_system,
+                                    st.session_state.name_new_star,
+                                    st.session_state.class_new_star,
+                                    float(st.session_state.mass_new_star),
+                                    float(st.session_state.x_new_star),
+                                    float(st.session_state.y_new_star),
+                                    float(st.session_state.z_new_star)
+                                ])
+                                st.text('Estrela criada com sucesso!')
+                            except DatabaseError as e:
+                                if 'Atributo com valor obrigatorio!' in str(e):
+                                    st.text('Algum atributo da estrela não foi preenchdio e ele é necessário, favor preencher!')
+                                elif 'Estrela ja existente!' in str(e):
+                                    st.text('Estrela já existente!')
+                                else:
+                                    st.text(e)
+                            except ValueError as e:
+                                st.text('Verifique se as coordenadas e massa são números!')
+
                 case 'Estrela orbitante':
                     st.text_input(label='Estrela orbitada', placeholder='Insira o ID da estrela orbitada', key='id_orbited_star')
                     st.text_input(
@@ -70,23 +91,45 @@ def cientista():
                     )
                     st.text_input(label='Período da órbita', placeholder='Insira o período da nova órbita', key='period_new_orbit')
 
-                    proc_name = 'cientista.cria_estrela_orbitante'
-                    parameters.append(st.session_state.id_orbited_star)
-                    parameters.append(st.session_state.min_dist_new_orbit)
-                    parameters.append(st.session_state.max_dist_new_orbit)
-                    parameters.append(st.session_state.period_new_orbit)
-
-            if st.button('Criar nova estrela'):
-                with st.session_state.connection.cursor() as cursor:
-                    try:
-                        cursor.callproc('usuario.log_message', [st.session_state.cpi, f'CRIA ESTRELA {st.session_state.id_new_star}'])
-                        cursor.callproc(proc_name, parameters)
-                        st.text('Estrela criada com sucesso!')
-                    except DatabaseError as e:
-                        if 'Atributo com valor obrigatorio!' in str(e):
-                            st.text('Algum atributo da estrela não foi preenchdio e ele é necessário, favor preencher!')
-                        elif 'Estrela ja existente!' in str(e):
-                            st.text('Estrela já existente!')
+                    with st.session_state.connection.cursor() as cursor:
+                        if len(st.session_state.id_new_star) > 31:
+                            st.text('O ID da estrela deve ter no máximo 31 caracteres')
+                        elif len(st.session_state.name_new_star) > 31:
+                            st.text('O nome da estrela deve ter no máximo 31 caracteres')
+                        elif len(st.session_state.id_orbited_star) > 31:
+                            st.text('O ID da estrela orbitante deve ter no máximo 31 caracteres')
+                        elif len(st.session_state.class_new_star) > 31:
+                            st.text('A classe da estrela deve ter no máximo 31 caracteres')
+                        else:
+                            try:
+                                st.text('tetes')
+                                cursor.callproc('usuario.log_message', [st.session_state.cpi, f'CRIA ESTRELA {st.session_state.id_new_star}'])
+                                cursor.callproc('cientista.cria_estrela_orbitante', [
+                                    st.session_state.id_new_star,
+                                    st.session_state.name_new_star,
+                                    st.session_state.class_new_star,
+                                    float(st.session_state.mass_new_star),
+                                    float(st.session_state.x_new_star),
+                                    float(st.session_state.y_new_star),
+                                    float(st.session_state.z_new_star),
+                                    st.session_state.id_orbited_star,
+                                    st.session_state.min_dist_new_orbit,
+                                    st.session_state.max_dist_new_orbit,
+                                    st.session_state.period_new_orbit
+                                ])
+                                st.text('Estrela criada com sucesso!')
+                            except DatabaseError as e:
+                                if 'Atributo com valor obrigatorio!' in str(e):
+                                    st.text('Algum atributo da estrela não foi preenchdio e ele é necessário, favor preencher!')
+                                elif 'Estrela ja existente!' in str(e):
+                                    st.text('Estrela já existente!')
+                                elif 'parent key not found' in str(e):
+                                    st.text('Estrela ORbitada não existe')
+                            except ValueError as e:
+                                st.text('Verifique se as coordenadas, massa, distancias e periodo são números!')
+                            except Exception as e:
+                                st.text(e)
+                        
 
     # Ler (Read)
     with st.container(border=True):
@@ -298,10 +341,14 @@ def cientista():
         st.subheader('Remova uma estrela')
         st.text_input('Insira o ID da estrela', key='id_delete')
         if st.button('Remover estrela'):
-            with st.session_state.connection.cursor() as cursor:
-                cursor.callproc('usuario.log_message', [st.session_state.cpi, f'REMOVE ESTRELA {st.session_state.id_delete}'])
-                cursor.callproc('cientista.remove_estrela', [st.session_state.id_delete])
-            st.text('Estrela removida com sucesso!')
+
+            if len(st.session_state.id_delete) > 31:
+                st.text(f'ID da estrela deve ter até 31 dígitos.')
+            else:
+                with st.session_state.connection.cursor() as cursor:
+                    cursor.callproc('usuario.log_message', [st.session_state.cpi, f'REMOVE ESTRELA {st.session_state.id_delete}'])
+                    cursor.callproc('cientista.remove_estrela', [st.session_state.id_delete])
+                st.text('Estrela removida com sucesso!')
 
 
 # Função que organiza as opções de gerenciamento de comandante
@@ -314,15 +361,19 @@ def comandante():
         st.subheader('Inclua sua nação em uma federação existente/Crie uma federação para sua Nação')
         federacao = st.text_input(label='Nome da federação', placeholder='Insira o nome da federação')
         if st.button('Incluir nação'):
-            with st.session_state.connection.cursor() as cursor:
-                try:
-                    cursor.callproc('usuario.log_message', [st.session_state.cpi, f'INCLUI NACAO {st.session_state.nacao} NA FEDERACAO {federacao}'])
-                    cursor.callproc('comandante.incluir_nacao_federacao', [st.session_state.nacao,federacao])
-                    st.text(f'Nacão {st.session_state.nacao} incluída com sucesso na federacao {federacao}!')
+            
+            if len(federacao) > 15:
+                st.text(f'Nome da Federação deve ter até 15 dígitos.')
+            else:
+                with st.session_state.connection.cursor() as cursor:
+                    try:
+                        cursor.callproc('usuario.log_message', [st.session_state.cpi, f'INCLUI NACAO {st.session_state.nacao} NA FEDERACAO {federacao}'])
+                        cursor.callproc('comandante.incluir_nacao_federacao', [st.session_state.nacao,federacao])
+                        st.text(f'Nacão {st.session_state.nacao} incluída com sucesso na federacao {federacao}!')
 
-                except DatabaseError as e:
-                        if 'NACAO JA POSSUI FEDERACAO' in str(e):
-                            st.text('Sua Nação já possui federação, favor remover para fazer a troca.')
+                    except DatabaseError as e:
+                            if 'NACAO JA POSSUI FEDERACAO' in str(e):
+                                st.text('Sua Nação já possui federação, favor remover para fazer a troca.')
 
 
     # Remove a Federação Atual
@@ -339,14 +390,17 @@ def comandante():
         st.subheader('Registre uma nova dominância')
         planeta = st.text_input(label='Nome do planeta', placeholder='Insira o nome do planeta')
         if st.button('Registrar dominância'):
-            with st.session_state.connection.cursor() as cursor:
-                try:
-                    cursor.callproc('usuario.log_message', [st.session_state.cpi, f'NACAO {st.session_state.nacao} DOMINA O PLANETA {planeta}'])
-                    cursor.callproc('comandante.registrar_dominancia', [st.session_state.nacao, planeta])
-                    st.text('Planeta dominado com sucesso!')
-                except DatabaseError as e:
-                    if 'Planeta ja esta sob dominacao uma nacao' in str(e):
-                        st.text('Planeta já está sob dominação uma nação!')
+            if len(planeta) > 15:
+                st.text(f'Nome do planeta deve ter até 15 dígitos.')
+            else:
+                with st.session_state.connection.cursor() as cursor:
+                    try:
+                        cursor.callproc('usuario.log_message', [st.session_state.cpi, f'NACAO {st.session_state.nacao} DOMINA O PLANETA {planeta}'])
+                        cursor.callproc('comandante.registrar_dominancia', [st.session_state.nacao, planeta])
+                        st.text('Planeta dominado com sucesso!')
+                    except DatabaseError as e:
+                        if 'Planeta ja esta sob dominacao uma nacao' in str(e):
+                            st.text('Planeta já está sob dominação uma nação!')
 
 
 def management_page():

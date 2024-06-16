@@ -90,7 +90,7 @@ def login():
 if __name__ == '__main__':
 
     # Busca as credenciais da base de dados
-    with open('/home/alesouza/USP/7_semestre/lab-bd/credenciais.json', 'r') as f:
+    with open('credenciais.json', 'r') as f:
         cred = json.load(f)
         cs = cred['cs']
         un = cred['un']
