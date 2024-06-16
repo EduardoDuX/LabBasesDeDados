@@ -9,6 +9,12 @@ CREATE OR REPLACE PACKAGE USUARIO AS
     )
     RETURN VARCHAR2;
 
+    -- Funcao que retorna para a aplicacao o nome do usuario
+    FUNCTION inicia_nome (
+        p_cpi_nome lider.cpi%type
+    )
+    RETURN VARCHAR2;
+
     -- Procedure que faz o log de uma acao do usuario
     PROCEDURE LOG_MESSAGE(
         cpi lider.cpi%TYPE,
@@ -52,6 +58,28 @@ CREATE OR REPLACE PACKAGE BODY USUARIO AS
 
     END inicia_nacao;
 
+    FUNCTION inicia_nome (
+        p_cpi_nome lider.cpi%type
+    )
+    RETURN VARCHAR2
+    IS
+        v_nome lider.nome%type;
+    BEGIN 
+        SELECT
+            nome
+        INTO
+            v_nome
+        FROM
+            lider
+        WHERE
+            lider.cpi = p_cpi_nome;   
+        RETURN v_nome;
+    
+    EXCEPTION 
+        WHEN NO_DATA_FOUND THEN
+            RETURN ' '
+
+    END inicia_nome;
 
     PROCEDURE LOG_MESSAGE(
         cpi lider.cpi%TYPE,
