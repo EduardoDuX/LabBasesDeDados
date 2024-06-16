@@ -157,10 +157,21 @@ CREATE OR REPLACE PACKAGE BODY LIDER_FACCAO AS
     
 
     PROCEDURE remove_nacao_faccao (
+        p_cpi lider.cpi%type,
         p_nacao nacao.nome%type,
         p_faccao faccao.nome%type
     ) IS 
+        v_nacao_lider NACAO.NOME%type;
     BEGIN
+            
+        SELECT Nacao INTO v_nacao_lider
+            FROM Lider
+            WHERE CPI = p_cpi;
+            
+        IF v_nacao_lider = p_nacao THEN
+            RAISE_APPLICATION_ERROR('Nao pode excluir a propria nacao de sua faccao');
+        END IF;
+    
         DELETE FROM
             nacao_faccao nf
         WHERE
