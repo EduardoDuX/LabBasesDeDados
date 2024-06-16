@@ -21,9 +21,6 @@
 ### SQL
 Pasta contendo os arquivos SQL utilizados para criar tabelas, triggers, views e outras estruturas no banco de dados. Esse diretório está organizado com subpastas para cada tipo de estrutura utilizada:
 
-#### indexes:
-- indexes.sql: Código para definição dos índices adicionais para otimização de consultas.
-
 #### pacotes:
 - pacote_cientista.sql: Código para definição do pacote `cientista`, contendo todas as funcionalidades de gerenciamento e relatório do cientista.
 - pacote_comandante.sql: Código para definição do pacote `comandante`, contendo todas as funcionalidades de gerenciamento e relatório do comandante.
@@ -45,6 +42,9 @@ Pasta contendo os arquivos SQL utilizados para criar tabelas, triggers, views e 
 
 ##### views:
 - view_lider_faccao.sql: Código para definição da view `v_lider_faccao`
+
+##### indexes:
+- indexes.sql: Código para definição dos índices adicionais para otimização de consultas.
 
 ##### insere_users
 Codigo PL/SQL para inserção dos líderes na tabela `USER`
