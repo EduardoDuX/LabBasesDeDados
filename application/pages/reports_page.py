@@ -17,46 +17,6 @@ def get_report(columns: list[str], filename: str, cursor: Cursor) -> DataFrame:
 
     return result
 
-# Função que gera os relatórios de líder
-def lider():
-    st.title('Gere relatórios para a sua facção')
-
-    with st.container(border=True):
-        st.subheader('Aqui você pode gerar relatórios para as comunidades de sua facção. Escolha um filtro para o relatório')
-        selected_option_ldr = st.multiselect('Filtro para o relatório', ['Sem filtros', 'Nação', 'Espécie', 'Planeta', 'Sistema'], max_selections=1, placeholder='Selecione uma opção')
-
-        if selected_option_ldr:
-            opt_ldr = selected_option_ldr[0]
-
-            match opt_ldr:
-                case 'Sem filtros':
-                    st.session_state['filter_ldr'] = ''
-                    column_name = 'Total comunidades'
-                case 'Nação':
-                    st.session_state['filter_ldr'] = 'NACAO'
-                    column_name = 'Nação'
-                case 'Espécie':
-                    st.session_state['filter_ldr'] = 'ESPECIE'
-                    column_name = 'Espécie'
-                case 'Planeta':
-                    st.session_state['filter_ldr'] = 'PLANETA'
-                    column_name = 'Planeta'
-                case 'Sistema':
-                    st.session_state['filter_ldr'] = 'SISTEMA'
-                    column_name = 'Sistema'
-            
-            if st.button('Gerar relatório', key='r1'):
-                with st.sesion_state.connection.cursor() as cursor:
-                    ref = st.session_state.connection.cursor()
-
-                    cursor.callproc('lider_faccao.relatorio_comunidade', [st.session_state.nacao, st.session_state.filter_ldr, ref])
-
-                    columns = [column_name, 'Quantidade de comunidades']
-
-                    df = get_report(columns, 'relatorio_comunidades.csv', ref)
-                    
-                    st.dataframe(df)
-
 # Função que gera os relatórios de oficial
 def oficial():
     st.title('Gere relatórios para a sua nação')
@@ -158,7 +118,7 @@ def comandante():
     st.title('Gere relatórios sobre planetas e obtenha informações estratégicas')
 
     with st.container(border=True):
-        st.subheader('Aqui você pode gerar relatórios para as dominâncias de todas as nações e para planetas estratégicos.')
+        st.subheader('Aqui você pode visualizar relatórios para as dominâncias de todas as nações e para planetas estratégicos.')
 
         with st.session_state.connection.cursor() as cursor:
             dom_atual = st.session_state.connection.cursor()
@@ -218,20 +178,25 @@ def comandante():
 
             # Exibindo os relatórios
             with st.container(border=True):
-                st.text('Informações sobre as dominâncias')
-                st.dataframe(df_dom_atual)
-                st.dataframe(df_ultima_dom)
+                st.markdown(f"<h5 color: white;'>Informações sobre as dominâncias</h5>", unsafe_allow_html=True)
+                sub_col1, sub_col2 = st.columns(2)
+
+                with sub_col1:
+                    st.dataframe(df_dom_atual)
+                
+                with sub_col2:
+                    st.dataframe(df_ultima_dom)
 
             with st.container(border=True):
-                st.text('Informações sobre planetas')
+                st.markdown(f"<h5 color: white;'>Informações sobre planetas</h5>", unsafe_allow_html=True)
                 st.dataframe(df_planetas)
 
             with st.container(border=True):
-                st.text('Informações extratégicas')
+                st.markdown(f"<h5 color: white;'>Informações estratégicas</h5>", unsafe_allow_html=True)
                 st.dataframe(df_infos_estrat)
 
             with st.container(border=True):
-                st.text('Informações de possíveis planetas pra expansão')
+                st.markdown(f"<h5 color: white;'>Informações de possíveis planetas pra expansão</h5>", unsafe_allow_html=True)
                 st.dataframe(df_plan_expansao)
 
 # Função geral que organiza a página
@@ -246,8 +211,6 @@ def reports_page():
         st.switch_page('pages/main_page.py')
 
     match st.session_state.user_type:
-        case 'LIDER':
-            lider()
         case 'COMANDANTE':
             comandante()
         case 'CIENTISTA':
