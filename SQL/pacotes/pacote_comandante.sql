@@ -1,4 +1,17 @@
 CREATE OR REPLACE PACKAGE COMANDANTE AS
+
+    PROCEDURE incluir_nacao_federacao (
+        p_nacao     NACAO.NOME%type,
+        p_federacao FEDERACAO.NOME%type
+    );
+    PROCEDURE excluir_nacao_federacao (
+        p_nacao     NACAO.NOME%type
+    );
+    PROCEDURE registrar_dominancia (
+        p_nacao     NACAO.NOME%type,
+        p_planeta   DOMINANCIA.PLANETA%type
+    );
+
     TYPE planeta_expansao IS RECORD (
         id_astro planeta.id_astro%type,
         classificacao planeta.classificacao%type,
@@ -7,11 +20,8 @@ CREATE OR REPLACE PACKAGE COMANDANTE AS
 
     TYPE planetas_expansao IS TABLE OF planeta_expansao;
 
-    PROCEDURE inicia_nacao (
-        p_cpi lider.cpi%type
-    );
-
     PROCEDURE relatorio_comandante (
+        p_nacao nacao.nome%type,
         p_com_dominancia_atual_refcur OUT SYS_REFCURSOR,
         p_com_ultima_dominancia_refcur OUT SYS_REFCURSOR,
         p_com_planetas_refcur OUT SYS_REFCURSOR,
@@ -27,10 +37,6 @@ CREATE OR REPLACE PACKAGE BODY COMANDANTE AS
     -- Exceção privada
     e_estrela_n_existe EXCEPTION;
 
-    /*  Variável privada com a nacao do lider, preenchida com o procedure
-        'inicia_nacao' */
-    v_nacao nacao.nome%type; 
-
     TYPE territorio IS TABLE OF estrela.id_estrela%type;
     v_territorio_nacao territorio := territorio();
 
@@ -39,21 +45,7 @@ CREATE OR REPLACE PACKAGE BODY COMANDANTE AS
 
     TYPE distancias IS TABLE OF NUMBER INDEX BY VARCHAR2(15);
     v_distancias distancias;
-    
-    /*  Procedimento deve ser executado imediatamente apos o login
-        Descobre, dado o lider, qual sua nação */
-    PROCEDURE inicia_nacao (
-        p_cpi IN lider.cpi%type
-    )
-    IS
-    BEGIN
-        SELECT nacao INTO v_nacao FROM lider WHERE  lider.cpi = p_cpi;
-    EXCEPTION
-        /* Lider sem nação não existe, portanto um erro aqui seria um problema 
-            de aplicação */
-        WHEN NO_DATA_FOUND THEN
-            RAISE_APPLICATION_ERROR(-20002, 'Lider invalido');
-    END inicia_nacao;
+
 
     FUNCTION distancia_estrelas (
         p_estrela1 IN estrela.id_estrela%type,
@@ -81,21 +73,23 @@ CREATE OR REPLACE PACKAGE BODY COMANDANTE AS
         RETURN v_distancia;      
     EXCEPTION
         WHEN NO_DATA_FOUND THEN RAISE e_estrela_n_existe;
-    END;
+    END distancia_estrelas;
 
-    PROCEDURE inicia_territorio_nacao
+
+    PROCEDURE inicia_territorio_nacao (
+        p_nacao nacao.nome%type
+    )
     IS
     BEGIN
          -- Estrelas/Sistemas que compõem o território de uma nação
         SELECT 
             DISTINCT E.ID_ESTRELA 
-        BULK COLLECT INTO v_territorio_nacao
-        FROM DOMINANCIA D INNER JOIN ORBITA_PLANETA OP
-        ON D.PLANETA = OP.PLANETA AND D.NACAO = v_nacao
-        INNER JOIN ESTRELA E
-        ON OP.ESTRELA = E.ID_ESTRELA
-        INNER JOIN SISTEMA S
-        ON E.ID_ESTRELA = S.ESTRELA;
+            BULK COLLECT INTO v_territorio_nacao
+        FROM
+            DOMINANCIA D
+            INNER JOIN ORBITA_PLANETA OP ON D.PLANETA = OP.PLANETA AND D.NACAO = p_nacao
+            INNER JOIN ESTRELA E ON OP.ESTRELA = E.ID_ESTRELA
+            INNER JOIN SISTEMA S ON E.ID_ESTRELA = S.ESTRELA;
     END inicia_territorio_nacao;
 
     PROCEDURE inicia_planetas_nao_errantes
@@ -116,6 +110,7 @@ CREATE OR REPLACE PACKAGE BODY COMANDANTE AS
     END inicia_planetas_nao_errantes;
 
     PROCEDURE inicia_distancias_nacao_planetas (
+        p_nacao nacao.nome%type,
         p_territorio_nacao IN territorio,
         p_planetas IN info_planetas_nao_errantes
     ) 
@@ -146,6 +141,7 @@ CREATE OR REPLACE PACKAGE BODY COMANDANTE AS
     END inicia_distancias_nacao_planetas;
 
     PROCEDURE relatorio_comandante (
+        p_nacao nacao.nome%type,
         p_com_dominancia_atual_refcur OUT SYS_REFCURSOR,
         p_com_ultima_dominancia_refcur OUT SYS_REFCURSOR,
         p_com_planetas_refcur OUT SYS_REFCURSOR,
@@ -210,15 +206,15 @@ CREATE OR REPLACE PACKAGE BODY COMANDANTE AS
                 SELECT 
                     QTD_PLANETAS
                 FROM NACAO
-                WHERE NACAO.NOME = v_nacao
+                WHERE NACAO.NOME = p_nacao
             )
             GROUP BY N.NOME, N.QTD_PLANETAS, N.FEDERACAO
             ORDER BY N.QTD_PLANETAS, QTD_FACCOES DESC, QTD_LIDERES DESC;
 
         -- Info de planetas para expansao
-        inicia_territorio_nacao;
+        inicia_territorio_nacao(p_nacao);
         inicia_planetas_nao_errantes;
-        inicia_distancias_nacao_planetas(v_territorio_nacao, v_info_planetas);
+        inicia_distancias_nacao_planetas(p_nacao, v_territorio_nacao, v_info_planetas);
 
         v_count := 1;
         p_com_planetas_expansao := planetas_expansao();
@@ -233,6 +229,113 @@ CREATE OR REPLACE PACKAGE BODY COMANDANTE AS
             p_com_planetas_expansao(v_count).distancia_nacao := v_distancias(v_info_planetas(i).planeta);
             v_count := v_count + 1;
         END LOOP;
-
     END relatorio_comandante;
+
+    
+    -- PROCEDURE PARA CRIAR FEDERACAO
+    PROCEDURE cria_federacao (
+        p_nome_federacao federacao.nome%type,
+        p_data_fund federacao.data_fund%type DEFAULT SYSDATE()
+    ) IS 
+    BEGIN
+        INSERT INTO federacao VALUES (p_nome_federacao, p_data_fund);
+        commit;
+    
+    EXCEPTION
+        WHEN DUP_VAL_ON_INDEX THEN
+            RAISE_APPLICATION_ERROR (-20001, 'federacao ja existe');
+    END cria_federacao;
+    
+    -- PROCEDURE PARA INCLUIR NACAO EM UMA FEDERACAO
+    PROCEDURE incluir_nacao_federacao (
+        p_nacao     NACAO.NOME%type,
+        p_federacao FEDERACAO.NOME%type
+    ) AS
+        e_federacao_inexistente EXCEPTION;
+        PRAGMA EXCEPTION_INIT(e_federacao_inexistente, -02291);
+    BEGIN
+        
+        UPDATE Nacao
+            SET Federacao = p_federacao
+            WHERE Nome = p_nacao AND Federacao IS NULL;
+        IF SQL%NOTFOUND THEN
+            RAISE_APPLICATION_ERROR(-20500,'NACAO JA POSSUI FEDERACAO!');
+        END IF;
+        commit;
+        EXCEPTION
+            WHEN e_federacao_inexistente THEN
+                comandante.cria_federacao(p_federacao);
+                UPDATE Nacao
+                    SET Federacao = p_federacao
+                    WHERE Nome = p_nacao;
+                    commit;
+                
+    END incluir_nacao_federacao;
+    
+    -- PROCEDURE PARA EXCLUIR NACAO DE UMA FEDERACAO
+    PROCEDURE excluir_nacao_federacao (
+        p_nacao     NACAO.NOME%type
+    ) AS
+        e_federacao_inexistente EXCEPTION;
+        PRAGMA EXCEPTION_INIT(e_federacao_inexistente, -02291);
+        
+        e_nacao_inexistente EXCEPTION;
+        PRAGMA EXCEPTION_INIT(e_nacao_inexistente, -20500);
+        
+        v_count     INT;
+        v_federacao FEDERACAO.NOME%type;
+    BEGIN
+        
+        SELECT Federacao INTO v_federacao
+            FROM Nacao
+            WHERE Nome = p_nacao;
+        
+        SELECT COUNT(*) INTO v_count
+            FROM Nacao
+            WHERE Federacao = v_federacao;
+            
+        IF v_count = 1 THEN
+            DELETE FROM Federacao WHERE Nome = v_federacao;
+        END IF;
+        
+        UPDATE Nacao
+            SET Federacao = NULL
+            WHERE Nome = p_nacao;
+        IF SQL%NOTFOUND THEN
+            RAISE_APPLICATION_ERROR(-20500,'Nacao invalida!');
+        END IF;
+        
+        commit;
+                    
+    END excluir_nacao_federacao;
+    
+    -- PROCEDURE PARA REGISTRAR NOVA DOMINANCIA
+    PROCEDURE registrar_dominancia (
+        p_nacao     NACAO.NOME%type,
+        p_planeta   DOMINANCIA.PLANETA%type
+    ) AS
+        e_federacao_inexistente EXCEPTION;
+        PRAGMA EXCEPTION_INIT(e_federacao_inexistente, -02291);
+        
+        e_nacao_inexistente EXCEPTION;
+        PRAGMA EXCEPTION_INIT(e_nacao_inexistente, -20500);
+        
+        v_count     INT;
+    BEGIN
+        
+        SELECT COUNT(*) INTO v_count
+            FROM Dominancia
+            WHERE planeta = p_planeta
+              AND (data_fim IS NULL OR data_fim < SYSDATE());
+            
+        IF v_count = 0 THEN
+            INSERT INTO Dominancia VALUES (p_planeta, p_nacao, SYSDATE(), NULL);
+        ELSE 
+            RAISE_APPLICATION_ERROR(-20600,'Planeta ja esta sob dominacao uma nacao.'); 
+        END IF;
+        
+        commit;        
+                    
+    END registrar_dominancia;
+
 END COMANDANTE;

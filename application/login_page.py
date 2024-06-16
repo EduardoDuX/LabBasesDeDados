@@ -56,7 +56,7 @@ def login():
                     
                     
                     with st.session_state.connection.cursor() as cursor:
-                        cursor.callproc('log_message', [cpi, 'LOGIN'])
+                        cursor.callproc('usuario.log_message', [cpi, 'LOGIN'])
 
                     login_result = login_result.replace(" ", "")
 
@@ -68,13 +68,15 @@ def login():
 
                     # Coletando a faccao do usuário
                     with st.session_state.connection.cursor() as cursor:
-                        faccao = cursor.callfunc('gerenciamento_lider.inicia_faccao', str,[st.session_state.cpi])
-                        st.session_state['faccao'] = faccao
+                        try:
+                            faccao = cursor.callfunc('pacote_lider_faccao.inicia_faccao', str,[st.session_state.cpi])
+                            st.session_state['faccao'] = faccao
+                        except:
+                            st.session_state['faccao'] = None
 
-                    if 'COMANDANTE' in login_result:
-                        with st.session_state.connection.cursor() as cursor:
-                            nacao = cursor.callfunc('gerenciamento_comandante.inicia_nacao', str,[st.session_state.cpi])
-                            st.session_state['nacao'] = nacao
+                    with st.session_state.connection.cursor() as cursor:
+                        nacao = cursor.callfunc('usuario.inicia_nacao', str,[st.session_state.cpi])
+                        st.session_state['nacao'] = nacao
 
                     # Avança para proxima pagina
                     st.switch_page('pages/main_page.py')

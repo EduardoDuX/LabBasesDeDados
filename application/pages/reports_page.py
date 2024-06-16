@@ -49,7 +49,7 @@ def lider():
                 with st.sesion_state.connection.cursor() as cursor:
                     ref = st.session_state.connection.cursor()
 
-                    cursor.callproc('pacote_lider_faccao.relatorio_comunidade', [st.session_state.nacao, st.session_state.filter_ldr, ref])
+                    cursor.callproc('lider_faccao.relatorio_comunidade', [st.session_state.nacao, st.session_state.filter_ldr, ref])
 
                     columns = [column_name, 'Quantidade de comunidades']
 
@@ -169,11 +169,9 @@ def comandante():
             coll_type = st.session_state.connection.gettype('COMANDANTE.PLANETAS_EXPANSAO')
             planetas_exp = coll_type.newobject()
 
-            # Inicializando a variável nação no escopo do pacote
-            cursor.callproc('comandante.inicia_nacao', [st.session_state.cpi])
-            
             # Obtendo os relatórios
-            cursor.callproc('comandante.relatorio_comandante', [dom_atual,
+            cursor.callproc('comandante.relatorio_comandante', [st.session_state.nacao,
+                                                                dom_atual,
                                                                 ultima_dom,
                                                                 planetas,
                                                                 infos_estrat,

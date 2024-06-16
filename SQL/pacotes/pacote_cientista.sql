@@ -2,13 +2,13 @@ CREATE OR REPLACE PACKAGE cientista AS
 
     PROCEDURE cria_estrela_com_sistema (
         p_id IN ESTRELA.ID_ESTRELA%type,
+        p_sistema IN SISTEMA.NOME%type,
         p_nome IN ESTRELA.NOME%type,
         p_classificacao IN ESTRELA.CLASSIFICACAO%type,
         p_massa IN ESTRELA.MASSA%type,
         p_x IN ESTRELA.X%type,
         p_y IN ESTRELA.Y%type,
-        p_z IN ESTRELA.Z%type,
-        p_sistema IN SISTEMA.NOME%type
+        p_z IN ESTRELA.Z%type
     );
     PROCEDURE cria_estrela_orbitante (
         p_id IN ESTRELA.ID_ESTRELA%type,
@@ -80,11 +80,11 @@ CREATE OR REPLACE PACKAGE cientista AS
     );
     
     
-END gerenciamento_cientista;
+END cientista;
 
 /
 
-CREATE OR REPLACE PACKAGE BODY gerenciamento_cientista AS
+CREATE OR REPLACE PACKAGE BODY cientista AS
 
     PROCEDURE cria_estrela_com_sistema (
         p_id IN ESTRELA.ID_ESTRELA%type,
@@ -329,7 +329,7 @@ CREATE OR REPLACE PACKAGE BODY gerenciamento_cientista AS
         
     PROCEDURE report_sistema(
         e sistema.estrela%TYPE DEFAULT NULL,
-        p_com_refcursor IN OUT SYS_REFCURSO)
+        p_com_refcursor IN OUT SYS_REFCURSOR)
         IS
     BEGIN
         IF e IS NOT NULL THEN

@@ -20,7 +20,7 @@ def lider():
         if st.button('Alterar'):
             with st.session_state.connection.cursor() as cursor:
                 cursor.callproc(
-                    'gerenciamento_lider.alterar_nome_faccao',
+                    'lider_faccao.alterar_nome_faccao',
                     [st.session_state.cpi, st.session_state.faccao, st.session_state.new_fac_name]
                 )
                 st.session_state.faccao = st.session_state.new_fac_name
@@ -35,7 +35,7 @@ def lider():
         st.text_input(label='CPI do novo líder', placeholder='Digite o CPI no formato XXX.XXX.XXX-XX', key='new_ldr_fac')
         if st.button('Indicar'):
             with st.session_state.connection.cursor() as cursor:
-                cursor.callproc("gerenciamento_lider.indicar_novo_lider", [st.session_state.new_ldr_fac])
+                cursor.callproc("lider_faccao.indicar_novo_lider", [st.session_state.new_ldr_fac])
 
             # Ao dar o privilégio de líder da facção para o novo líder, o líder anterior é desconectado
             st.text('Novo líder indicado com sucesso! Você será desconectado em breve...')
@@ -58,7 +58,7 @@ def lider():
         st.text_input(label='Nome da nação', placeholder='Insira o nome da nação', key='rmv_nac')
         if st.button('Remover'):
             with st.session_state.connection.cursor() as cursor:
-                cursor.callproc("gerenciamento_lider.remove_nacao_faccao", [st.session_state.rmv_nac])
+                cursor.callproc("lider_faccao.remove_nacao_faccao", [st.session_state.rmv_nac])
 
 def cientista():
     # Gerencia CRUD de estrelas
@@ -107,7 +107,7 @@ def cientista():
                 case 'Estrela com Sistema':
                     st.text_input(label='Sistema', placeholder='Insira o nome do novo sistema', key='name_new_system')
                     
-                    proc_name = 'gerenciamento_cientista.cria_estrela_com_sistema'
+                    proc_name = 'cientista.cria_estrela_com_sistema'
                     parameters.append(st.session_state.name_new_system)
                 case 'Estrela orbitante':
                     st.text_input(label='Estrela orbitada', placeholder='Insira o ID da estrela orbitada', key='id_orbited_star')
@@ -123,7 +123,7 @@ def cientista():
                     )
                     st.text_input(label='Período da órbita', placeholder='Insira o período da nova órbita', key='period_new_orbit')
 
-                    proc_name = 'gerenciamento_cientista.cria_estrela_orbitante'
+                    proc_name = 'cientista.cria_estrela_orbitante'
                     parameters.append(st.session_state.id_orbited_star)
                     parameters.append(st.session_state.min_dist_new_orbit)
                     parameters.append(st.session_state.max_dist_new_orbit)
@@ -175,7 +175,7 @@ def cientista():
                         with st.session_state.connection.cursor() as cursor:
                             ref = st.session_state.connection.cursor()
 
-                            cursor.callproc('gerenciamento_cientista.le_estrela', [ref])
+                            cursor.callproc('cientista.le_estrela', [ref])
 
                             with open("le_estrela.csv", "w", encoding='utf-8') as outputfile:
                                 writer = csv.writer(outputfile, lineterminator="\n")
@@ -193,7 +193,7 @@ def cientista():
                         with st.session_state.connection.cursor() as cursor:
                             ref = st.session_state.connection.cursor()
 
-                            cursor.callproc('gerenciamento_cientista.le_estrela_id', [st.session_state.id_read, ref])
+                            cursor.callproc('cientista.le_estrela_id', [st.session_state.id_read, ref])
 
                             with open("le_estrela_id.csv", "w", encoding='utf-8') as outputfile:
                                 writer = csv.writer(outputfile, lineterminator="\n")
@@ -211,7 +211,7 @@ def cientista():
                         with st.session_state.connection.cursor() as cursor:
                             ref = st.session_state.connection.cursor()
 
-                            cursor.callproc('gerenciamento_cientista.le_estrela_nome', [st.session_state.name_read, ref])
+                            cursor.callproc('cientista.le_estrela_nome', [st.session_state.name_read, ref])
 
                             with open("le_estrela_nome.csv", "w", encoding='utf-8') as outputfile:
                                 writer = csv.writer(outputfile, lineterminator="\n")
@@ -229,7 +229,7 @@ def cientista():
                         with st.session_state.connection.cursor() as cursor:
                             ref = st.session_state.connection.cursor()
 
-                            cursor.callproc('gerenciamento_cientista.le_estrela_massa', [st.session_state.mass_read, ref])
+                            cursor.callproc('cientista.le_estrela_massa', [st.session_state.mass_read, ref])
 
                             with open("le_estrela_massa.csv", "w", encoding='utf-8') as outputfile:
                                 writer = csv.writer(outputfile, lineterminator="\n")
@@ -246,7 +246,7 @@ def cientista():
                         with st.session_state.connection.cursor() as cursor:
                             ref = st.session_state.connection.cursor()
 
-                            cursor.callproc('gerenciamento_cientista.le_estrela_classificacao', [st.session_state.class_read, ref])
+                            cursor.callproc('cientista.le_estrela_classificacao', [st.session_state.class_read, ref])
 
                             with open("le_estrela_class.csv", "w", encoding='utf-8') as outputfile:
                                 writer = csv.writer(outputfile, lineterminator="\n")
@@ -301,7 +301,7 @@ def cientista():
                     case 'Nome':
                         with st.session_state.connection.cursor() as cursor:
                             cursor.callproc(
-                                'gerenciamento_cientista.atualiza_estrela_nome',
+                                'cientista.atualiza_estrela_nome',
                                 [st.session_state.id_update, st.session_state.name_update]
                             )
                             
@@ -309,7 +309,7 @@ def cientista():
                     case 'Classificação':
                         with st.session_state.connection.cursor() as cursor:
                             cursor.callproc(
-                                'gerenciamento_cientista.atualiza_estrela_classificacao',
+                                'cientista.atualiza_estrela_classificacao',
                                 [st.session_state.id_update, st.session_state.class_update]
                             )
                             
@@ -318,7 +318,7 @@ def cientista():
                         with st.session_state.connection.cursor() as cursor:
                             try:
                                 cursor.callproc(
-                                    'gerenciamento_cientista.atualiza_estrela_masssa',
+                                    'cientista.atualiza_estrela_masssa',
                                     [st.session_state.id_update, st.session_state.mass_update]
                                 )
                                 st.text(f'Massa da estrela {st.session_state.id_update} atualizada com sucesso!')
@@ -330,7 +330,7 @@ def cientista():
                         with st.session_state.connection.cursor() as cursor:
                             try:
                                 cursor.callproc(
-                                    'gerenciamento_cientista.atualiza_estrela_nome',
+                                    'cientista.atualiza_estrela_nome',
                                     [
                                         st.session_state.id_update,
                                         st.session_state.x_update,
@@ -349,7 +349,7 @@ def cientista():
         st.text_input('Insira o ID da estrela', key='id_delete')
         if st.button('Remover estrela'):
             with st.session_state.connection.cursor() as cursor:
-                cursor.callproc('gerrenciamento_cientista.remove_estrela', [st.session_state.id_delete])
+                cursor.callproc('cientista.remove_estrela', [st.session_state.id_delete])
             st.text('Estrela removida com sucesso!')
 
 
@@ -364,8 +364,8 @@ def comandante():
         if st.button('Incluir nação'):
             with st.session_state.connection.cursor() as cursor:
                 try:
-                    cursor.callproc('log_message', [st.session_state.cpi, f'INCLUI NACAO {st.session_state.nacao} NA FEDERACAO {federacao}'])
-                    cursor.callproc('gerenciamento_comandante.incluir_nacao_federacao', [st.session_state.nacao,federacao])
+                    cursor.callproc('usuario.log_message', [st.session_state.cpi, f'INCLUI NACAO {st.session_state.nacao} NA FEDERACAO {federacao}'])
+                    cursor.callproc('comandante.incluir_nacao_federacao', [st.session_state.nacao,federacao])
                     st.text(f'Nacão {st.session_state.nacao} incluída com sucesso na federacao {federacao}!')
 
                 except DatabaseError as e:
@@ -378,8 +378,8 @@ def comandante():
         st.subheader('Remova a sua nação da federação atual')
         if st.button('Remover Federação'):
             with st.session_state.connection.cursor() as cursor:
-                cursor.callproc('log_message', [st.session_state.cpi, f'REMOVE FEDERACAO DA NACAO {st.session_state.nacao}'])
-                cursor.callproc('gerenciamento_comandante.excluir_nacao_federacao', [st.session_state.nacao])
+                cursor.callproc('usuario.log_message', [st.session_state.cpi, f'REMOVE FEDERACAO DA NACAO {st.session_state.nacao}'])
+                cursor.callproc('comandante.excluir_nacao_federacao', [st.session_state.nacao])
                 st.text('Federação removida com sucesso!')
 
     # Registrar dominância
@@ -389,8 +389,8 @@ def comandante():
         if st.button('Registrar dominância'):
             with st.session_state.connection.cursor() as cursor:
                 try:
-                    cursor.callproc('log_message', [st.session_state.cpi, f'NACAO {st.session_state.nacao} DOMINA O PLANETA {planeta}'])
-                    cursor.callproc('gerenciamento_comandante.registrar_dominancia', [st.session_state.nacao, planeta])
+                    cursor.callproc('usuario.log_message', [st.session_state.cpi, f'NACAO {st.session_state.nacao} DOMINA O PLANETA {planeta}'])
+                    cursor.callproc('comandante.registrar_dominancia', [st.session_state.nacao, planeta])
                     st.text('Planeta dominado com sucesso!')
                 except DatabaseError as e:
                     if 'Planeta ja esta sob dominacao uma nacao' in str(e):
