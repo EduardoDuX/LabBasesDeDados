@@ -288,23 +288,33 @@ def cientista():
                     )
 
             if st.button('Atualizar estrela'):
-                cursor.callproc('usuario.log_message', [st.session_state.cpi, f'UPDATE ESTRELA {st.session_state.id_update}'])
+                
                 match opt_update:
                     case 'Nome':
-                        with st.session_state.connection.cursor() as cursor:
+                        try:
+                            with st.session_state.connection.cursor() as cursor:
+                                cursor.callproc('usuario.log_message', [st.session_state.cpi, f'UPDATE ESTRELA {st.session_state.id_update}'])
+                                cursor.callproc(
+                                    'cientista.atualiza_estrela_nome',
+                                    [st.session_state.id_update, st.session_state.name_update]
+                                )
+                                st.text(f'Nome da estrela {st.session_state.id_update} atualizado com sucesso!')
+                        except DatabaseError as e:
+                            if 'too large ' in str(e):
+                                st.text('Nome deve ter no máximo 31 caracteres')
                             
-                            cursor.callproc(
-                                'cientista.atualiza_estrela_nome',
-                                [st.session_state.id_update, st.session_state.name_update]
-                            )
-                            
-                        st.text(f'Nome da estrela {st.session_state.id_update} atualizado com sucesso!')
+                        
                     case 'Classificação':
-                        with st.session_state.connection.cursor() as cursor:
-                            cursor.callproc(
-                                'cientista.atualiza_estrela_classificacao',
-                                [st.session_state.id_update, st.session_state.class_update]
-                            )
+                        try:
+                            with st.session_state.connection.cursor() as cursor:
+                                cursor.callproc(
+                                    'cientista.atualiza_estrela_classificacao',
+                                    [st.session_state.id_update, st.session_state.class_update]
+                                )
+                        except DatabaseError as e:
+                            if 'too large ' in str(e):
+                                st.text('Classificação deve ter no máximo 31 caracteres')
+
                             
                         st.text(f'Classificação da estrela {st.session_state.id_update} atualizada com sucesso!')
                     case 'Massa':
@@ -348,7 +358,7 @@ def cientista():
                 with st.session_state.connection.cursor() as cursor:
                     cursor.callproc('usuario.log_message', [st.session_state.cpi, f'REMOVE ESTRELA {st.session_state.id_delete}'])
                     cursor.callproc('cientista.remove_estrela', [st.session_state.id_delete])
-                st.text('Estrela removida com sucesso!')
+                st.text('Estrela removida com sucesso! (Caso ela existisse)')
 
 
 # Função que organiza as opções de gerenciamento de comandante

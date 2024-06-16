@@ -274,6 +274,8 @@ CREATE OR REPLACE PACKAGE BODY cientista AS
         WHERE
             Id_estrela = p_id;
 
+        commit;
+
     END atualiza_estrela_nome;
 
     
@@ -290,6 +292,9 @@ CREATE OR REPLACE PACKAGE BODY cientista AS
             Massa = p_massa
         WHERE
             Id_estrela = p_id;
+
+        commit;
+
     EXCEPTION
         WHEN e_massa_negativa THEN
             RAISE_APPLICATION_ERROR(-20100, 'Massa deve ser maior que 0!');
@@ -309,6 +314,8 @@ CREATE OR REPLACE PACKAGE BODY cientista AS
         WHERE
             Id_estrela = p_id;
 
+        commit;
+
     END atualiza_estrela_classificacao;
     
 
@@ -327,6 +334,9 @@ CREATE OR REPLACE PACKAGE BODY cientista AS
             Z = p_z
         WHERE
             Id_estrela = p_id;
+
+        commit;
+
     EXCEPTION
         WHEN DUP_VAL_ON_INDEX THEN
             RAISE_APPLICATION_ERROR(-20101, 'Coordenadas conflitantes com outra estrela.');
