@@ -38,8 +38,6 @@ def login():
         cpi = st.text_input("Digite seu CPI no formato XXX.XXX.XXX-XX", key='cpi_login')
         password = st.text_input("Senha", key='password', type='password')
 
-        st.session_state.cpi = cpi
-
         # Procedimento de login
         if cpi and password:
 
@@ -57,9 +55,6 @@ def login():
 
                 # Armazena o tipo de lider retornado
                 elif 'COMANDANTE' in login_result or 'OFICIAL' in login_result or 'CIENTISTA' in login_result:
-                    
-                    
-                    
                     with st.session_state.connection.cursor() as cursor:
                         cursor.callproc('usuario.log_message', [cpi, 'LOGIN'])
 
@@ -78,6 +73,11 @@ def login():
                             st.session_state['faccao'] = faccao
                         except:
                             st.session_state['faccao'] = None
+
+                    # Coletando o nome do usuário
+                    with st.session_state.connection.cursor() as cursor:
+                        nome_usuario = cursor.callfunc('pacote_usuario.inicia_nacao', str, [st.session_state.cpi])
+                        st.session_state['nome_usuario'] = nome_usuario
 
                     with st.session_state.connection.cursor() as cursor:
                         nacao = cursor.callfunc('usuario.inicia_nacao', str,[st.session_state.cpi])
