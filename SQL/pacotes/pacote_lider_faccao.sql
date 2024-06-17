@@ -45,12 +45,14 @@ CREATE OR REPLACE PACKAGE LIDER_FACCAO AS
     
     PROCEDURE credencia_comunidade(
         p_especie comunidade.especie%type,
-        p_comunidade comunidade.nome%type
+        p_comunidade comunidade.nome%type,
+        p_faccao participa.faccao%type
     );
     
     PROCEDURE descredencia_comunidade(
         p_especie comunidade.especie%type,
-        p_comunidade comunidade.nome%type
+        p_comunidade comunidade.nome%type,
+        p_faccao participa.faccao%type
     );
 
 
@@ -154,37 +156,49 @@ CREATE OR REPLACE PACKAGE BODY LIDER_FACCAO AS
     ) IS
     BEGIN
         OPEN p_com_refcur FOR 
-            SELECT Nacao, Planeta, Especie, Comunidade, Credenciada 
-                FROM v_lider_faccao 
-                WHERE FACCAO = p_faccao;
+            SELECT Especie, Comunidade, Credenciada 
+                FROM
+                    v_lider_faccao 
+                WHERE
+                    FACCAO = p_faccao AND
+                    especie IS NOT NULL
+                    and comunidade IS NOT NULL;
+                    
     END relatorio_comunidades_credenciadas;
 
 
     PROCEDURE credencia_comunidade(
         p_especie comunidade.especie%type,
-        p_comunidade comunidade.nome%type
+        p_comunidade comunidade.nome%type,
+        p_faccao participa.faccao%type
     ) IS
     BEGIN
     
         UPDATE V_LIDER_FACCAO 
             SET CREDENCIADA = 1
             WHERE ESPECIE = p_especie
-              AND COMUNIDADE = p_comunidade;
+              AND COMUNIDADE = p_comunidade
+              AND faccao = p_faccao;
               
+        commit;
     END credencia_comunidade;
     
     PROCEDURE descredencia_comunidade(
         p_especie comunidade.especie%type,
-        p_comunidade comunidade.nome%type
+        p_comunidade comunidade.nome%type,
+        p_faccao participa.faccao%type
     ) IS
     BEGIN
     
         UPDATE V_LIDER_FACCAO 
             SET CREDENCIADA = 0
             WHERE ESPECIE = p_especie
-              AND COMUNIDADE = p_comunidade;
+              AND COMUNIDADE = p_comunidade
+              AND faccao = p_faccao;
+            
+        commit;
               
-    END credencia_comunidade;
+    END descredencia_comunidade;
 
     FUNCTION inicia_faccao (
         p_cpi lider.cpi%type

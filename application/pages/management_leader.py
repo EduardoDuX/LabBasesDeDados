@@ -2,9 +2,29 @@ import streamlit as st
 from oracledb import DatabaseError
 import time
 import re
+import csv
+import os
+import pandas as pd
+from oracledb import Cursor
+from pandas import DataFrame
+
 
 # Padrao do CPI do lider
 CPI_PATTERN = re.compile(r'\d{3}\.\d{3}\.\d{3}-\d{2}')
+
+# Função auxiliar que retorna os relatórios em um DataFrame
+def get_report(columns: list[str], filename: str, cursor: Cursor) -> DataFrame:
+    with open(filename, 'w', encoding='utf-8') as outputfile:
+        writer = csv.writer(outputfile, lineterminator='\n')
+        writer.writerows(cursor)
+
+    result = pd.read_csv(filename, names=columns, header=None)
+
+    os.remove(filename)
+
+    return result
+
+
 
 # Função que organiza as opções de gerenciamento de líder
 def lider():
@@ -31,6 +51,66 @@ def lider():
                     st.session_state.faccao = st.session_state.new_fac_name
 
             st.text('Nome da facção alterado com sucesso!')
+
+
+    # Credenciar nova comunidade
+    with st.container(border=True):
+        st.subheader('Credenciar nova comunidade')
+        with st.session_state.connection.cursor() as cursor:
+            ref = st.session_state.connection.cursor()
+            cursor.callproc('lider_faccao.relatorio_comunidades_credenciadas', [st.session_state.faccao, ref])
+
+            columns = ['Especie', 'Comunidade', 'Credenciada']
+            df = get_report(columns, 'comunidades_credencia.csv', ref)
+            st.dataframe(df)
+
+            st.text_input(
+                    label='Nome da nova comunidade',
+                    placeholder='Insira o nome da comunidade que quer credenciar',
+                    key='new_com_name'
+            )
+            st.text_input(
+                label='Especie da nova comunidade',
+                placeholder='Insira a espécie da comunidade que quer credenciar',
+                key='new_com_esp'
+            )
+
+            if st.button('Credenciar Comunidade'):
+                try:
+                    if len(st.session_state.new_com_name) > 15:
+                        st.text(f'Nome da Comunidade deve ter até 15 dígitos.')
+                    elif len(st.session_state.new_com_esp) > 15:
+                        st.text(f'Nome da Espécie deve ter até 15 dígitos.')
+                    else:
+                        cursor.callproc('lider_faccao.credencia_comunidade', [st.session_state.new_com_esp, st.session_state.new_com_name, st.session_state.faccao])
+                        st.text(f'Comunidade credenciada com sucesso')
+                except DatabaseError as e:
+                    if 'unique constraint' in str(e):
+                        st.text(f'Comunidade já credenciada')
+    
+
+    # Descredenciar comunidade
+    with st.container(border=True):
+        st.subheader('Descredenciar comunidade')
+        st.text_input(
+            label='Nome da comunidade',
+            placeholder='Insira o nome da comunidade que quer descredenciar',
+            key='old_com_name'
+        )
+        st.text_input(
+            label='Especie da comunidade',
+            placeholder='Insira a espécie da comunidade que quer descredenciar',
+            key='old_com_esp'
+        )
+        if st.button('Descredenciar Comunidade'):
+            if len(st.session_state.new_com_name) > 15:
+                st.text(f'Nome da Comunidade deve ter até 15 dígitos.')
+            elif len(st.session_state.new_com_esp) > 15:
+                st.text(f'Nome da Espécie deve ter até 15 dígitos.')
+            else:
+                with st.session_state.connection.cursor() as cursor:
+                    cursor.callproc('lider_faccao.descredencia_comunidade', [st.session_state.old_com_esp, st.session_state.old_com_name, st.session_state.faccao])
+                    st.text(f'Comunidade descredenciada com sucesso')
 
     # Indicar um novo líder
     with st.container(border=True):
