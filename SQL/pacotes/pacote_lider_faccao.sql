@@ -173,10 +173,12 @@ CREATE OR REPLACE PACKAGE BODY LIDER_FACCAO AS
         END IF;
     
         DELETE FROM
-            nacao_faccao nf
+            NACAO_FACCAO nf
         WHERE
             nf.nacao = p_nacao
             AND nf.faccao = p_faccao;
+        IF SQL%NOTFOUND THEN
+            RAISE_APPLICATION_ERROR(-20565, 'Nacao nao encontrada');
 
         commit;
 
