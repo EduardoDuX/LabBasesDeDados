@@ -1,3 +1,6 @@
+-- View utilizada para ser acessada pelo líder de uma facção
+-- para que ele possa gerenciar melhor as comunidades que são
+-- credenciadas à sua facção.
 CREATE OR REPLACE VIEW v_lider_faccao AS
     SELECT F.Lider, F.Nome AS FACCAO, NF.Nacao, D.Planeta, H.Especie, H.Comunidade, 
             (CASE WHEN (P.Comunidade = H.Comunidade AND P.Especie = H.Especie) THEN 1

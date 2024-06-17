@@ -10,6 +10,12 @@ CREATE OR REPLACE PACKAGE LIDER_FACCAO AS
         p_filtro VARCHAR2, 
         p_com_refcur IN OUT SYS_REFCURSOR
     );
+    
+    -- Relatorio de comunidades credenciadas
+    PROCEDURE relatorio_comunidades_credenciadas(
+        p_faccao faccao.nome%type,
+        p_com_refcur IN OUT SYS_REFCURSOR
+    );
 
     -- Remover a faccao de uma nacao
     PROCEDURE remove_nacao_faccao (
@@ -36,6 +42,17 @@ CREATE OR REPLACE PACKAGE LIDER_FACCAO AS
         p_lider_novo    LIDER.NOME%type,
         p_faccao        FACCAO.NOME%type
     );
+    
+    PROCEDURE credencia_comunidade(
+        p_especie comunidade.especie%type,
+        p_comunidade comunidade.nome%type
+    );
+    
+    PROCEDURE descredencia_comunidade(
+        p_especie comunidade.especie%type,
+        p_comunidade comunidade.nome%type
+    );
+
 
 END LIDER_FACCAO;
 
@@ -129,7 +146,45 @@ CREATE OR REPLACE PACKAGE BODY LIDER_FACCAO AS
         END IF;
 
     END RELATORIO_COMUNIDADE;    
-           
+    
+    
+    PROCEDURE relatorio_comunidades_credenciadas(
+        p_faccao faccao.nome%type,
+        p_com_refcur IN OUT SYS_REFCURSOR
+    ) IS
+    BEGIN
+        OPEN p_com_refcur FOR 
+            SELECT Nacao, Planeta, Especie, Comunidade, Credenciada 
+                FROM v_lider_faccao 
+                WHERE FACCAO = p_faccao;
+    END relatorio_comunidades_credenciadas;
+
+
+    PROCEDURE credencia_comunidade(
+        p_especie comunidade.especie%type,
+        p_comunidade comunidade.nome%type
+    ) IS
+    BEGIN
+    
+        UPDATE V_LIDER_FACCAO 
+            SET CREDENCIADA = 1
+            WHERE ESPECIE = p_especie
+              AND COMUNIDADE = p_comunidade;
+              
+    END credencia_comunidade;
+    
+    PROCEDURE descredencia_comunidade(
+        p_especie comunidade.especie%type,
+        p_comunidade comunidade.nome%type
+    ) IS
+    BEGIN
+    
+        UPDATE V_LIDER_FACCAO 
+            SET CREDENCIADA = 0
+            WHERE ESPECIE = p_especie
+              AND COMUNIDADE = p_comunidade;
+              
+    END credencia_comunidade;
 
     FUNCTION inicia_faccao (
         p_cpi lider.cpi%type
@@ -179,6 +234,7 @@ CREATE OR REPLACE PACKAGE BODY LIDER_FACCAO AS
             AND nf.faccao = p_faccao;
         IF SQL%NOTFOUND THEN
             RAISE_APPLICATION_ERROR(-20565, 'Nacao nao encontrada');
+        END IF;
 
         commit;
 
