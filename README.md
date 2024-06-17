@@ -64,3 +64,5 @@ Arquivo de login, esse arquivo contém o código python com a chamda da função
 - main_page.py: Arquivo .py que contém a página de navegação, faz a navegação para as páginas de relatório e gerenciamento.
 - management_page.py: Arquivo para realizar os gerenciamentos, possui uma função definida para cada tipo de líder, que é executada conforme o usuário que está utilizando o banco.
 - reports_page.py: Arquivo para acessar os relatórios, possui uma função definida para cada tipo de líder, que é executada conforme o usuário que está utilizando o banco.
+- reports_leader.py: Arquivo para acessar os relatórios específicos de líder de facção.
+- management_leader.py: Arquivo para realizar os gerenciamentos de facção, exclusivos do líder de facção.
